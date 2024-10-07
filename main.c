@@ -27,5 +27,8 @@ struct struct_movimiento{
     long int cuilEnvia;
 }
 int main() {
+    
+    int i;
+
     return 0;
 }
