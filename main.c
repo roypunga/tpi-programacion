@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <time.h>
 
+void funcionFalopa();
+
+
 struct struct_usuario {
     long int cuil;
     char nombre[50];
