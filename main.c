@@ -26,11 +26,11 @@ struct struct_movimiento{
     long int cuilRecibe;
     long int cuilEnvia;
 };
-int main() {
-
-    
+void falopa(int x);
+int main() {    
     int i;
 	int opc;
 	return 0;
 }
+
 
