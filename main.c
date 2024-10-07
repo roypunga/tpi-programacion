@@ -25,7 +25,8 @@ struct struct_movimiento{
     //fecha 
     long int cuilRecibe;
     long int cuilEnvia;
-}
+};
 int main() {
-    return 0;
+	int opc;
+	return 0;
 }
