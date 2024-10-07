@@ -27,10 +27,10 @@ struct struct_movimiento{
     long int cuilEnvia;
 };
 int main() {
-<<<<<<< HEAD
+
     
     int i;
 	int opc;
 	return 0;
 }
->>>>>>> 350694c6e38fd428eb82142e4034f58a27d8675a
+
