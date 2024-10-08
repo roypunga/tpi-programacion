@@ -25,7 +25,11 @@ struct struct_movimiento{
     int tipo; //ingreso transferencia o pago
     float monto;
     float iibb;
-    //fecha 
+
+    time_t fecha;
+    char fecha_string[30];
+
+
     long int cuilRecibe;
     long int cuilEnvia;
 };
@@ -34,6 +38,7 @@ int main() {
     
     int i;
 	int opc;
+
 	return 0;
 }
 
