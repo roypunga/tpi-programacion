@@ -33,7 +33,7 @@ struct struct_movimiento{
     long int cuilRecibe;
     long int cuilEnvia;
 };
-void falopa(int x);
+
 int main() {    
     int i;
 	int opc;
