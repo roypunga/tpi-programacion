@@ -1,23 +1,21 @@
 #include <stdio.h>
 #include <time.h>
 
+void cargarUsuario();
 
 struct struct_usuario {
-    long int cuil;
-    char nombre[50];
-    long int celular;
-    char email[30];
-    long int cvu;
-    char alias[30];
+	char nombre[50];
+    long int cuil, cvu, celular;
+    char email[30], alias[30];
     int iva;
     float saldo;
-};
+}usuario;
 
 struct struct_cuenta {
     int tipo; //caja de ahorro cuenta corriente
     long int cbu;
     long int cuil;
-};
+}cuenta;
 
 struct struct_movimiento{
     int tipo; //ingreso transferencia o pago
@@ -30,15 +28,13 @@ struct struct_movimiento{
 
     long int cuilRecibe;
     long int cuilEnvia;
-};
+}movimiento;
 
 void menuAdministrador();
 void menuUsuario();
 
 int usrChoice;
 int main() {    
-
-
 
     principio:
 
@@ -58,11 +54,51 @@ int main() {
             break;
 
         default:
-            printf("NUmero invalido, ingrese 1 o 2\n");
+            printf("Numero invalido, ingrese 1 o 2\n");
             goto principio; //esto en teoria es muy mala practica pero me chupa un huevo, es re practico
 
     }
 
+}
+
+void cargarUsuario(){
+	int parar=0;
+	FILE *f=fopen("Usuarios.dat","a+w");
+	if(f!=NULL){
+		while(parar!=1){
+			while(!feof(f)){
+				fread(&usuario,sizeof(struct struct_usuario),1,f);
+			}
+			usuario.cvu = usuario.cvu + 1;
+			
+			printf("Ingrese su nombre\n-----> ");
+			fflush(stdin);
+			fgets(usuario.nombre,50,stdin);
+			
+			printf("Ingrese su CUIL\n-----> ");
+			scanf("%ld",&usuario.cuil);
+			
+			printf("Ingrese su numero de celular\n-----> ");
+			scanf("%ld",&usuario.cuil);
+			
+			printf("Ingrese su email\n-----> ");
+			scanf("%s",&usuario.email);
+			
+			printf("Ingrese su alias\n-----> ");
+			fflush(stdin);
+			fgets(usuario.alias,30,stdin);
+			
+			printf("Tiene que pagar IVA?(0. NO\n1.SI)\n-----> ");
+			scanf("%i",&usuario.iva);
+			
+			usuario.saldo=0;
+			
+			fwrite(&usuario,sizeof(struct struct_usuario),1,f);
+			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
+			rewind(f);
+		}
+	}
+	else printf("ERROR: no se pudo abrir el archivo");
 }
 
 /*
