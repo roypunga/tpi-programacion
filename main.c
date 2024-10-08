@@ -100,6 +100,26 @@ void cargarUsuario(){
 	}
 	else printf("ERROR: no se pudo abrir el archivo");
 }
+void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
+	FILE *fp1;
+	int encon=0;
+	fp1=fopen("Usuarios.dat", "rb");
+	if(fp1!=NULL){
+		while((encon==0)&&((fread(&usuario,sizeof(usuario),1,fp1))==1)){
+			if(usuario.cvu==cvu){
+				printf("\nCuenta %ld con un saldo de: $%.2f", usuario.saldo);
+				encon=1;
+			}
+		}
+		if(encon==0){
+			printf("\nNo se encontro ninguna cuenta con cvu: %ld", cvu);//se podria verificar el cvu antes de pasarlo para aca, es mas eficiente
+		}
+	}
+	else {
+		printf("\nERROR AL ABRIR EL ARCHIVO DATOS DE USUARIO");//logicamente no se puede ejecutar antes de cargar usuarios por lo menos 1 vez
+	}
+	fclose(fp1);//cierren sus archivos qliaos
+}
 
 /*
 1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
