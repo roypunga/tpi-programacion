@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <time.h>
 
-void funcionFalopa();
-
 
 struct struct_usuario {
     long int cuil;
@@ -34,11 +32,56 @@ struct struct_movimiento{
     long int cuilEnvia;
 };
 
-int main() {    
-    int i;
-	int opc;
+void menuAdministrador();
+void menuUsuario();
 
-	return 0;
+int usrChoice;
+int main() {    
+
+
+
+    principio:
+
+    printf("Bienvenido a MercadoCobro. A que menu quiere acceder?\n");
+    printf("1-Menu de Usuario\t\t2-Menu de Administrador\n");
+
+    scanf("%d", &usrChoice);
+
+    switch(usrChoice){
+
+        case 1:
+            menuUsuario();
+            break;
+
+        case 2:
+            menuAdministrador();
+            break;
+
+        default:
+            printf("NUmero invalido, ingrese 1 o 2\n");
+            goto principio; //esto en teoria es muy mala practica pero me chupa un huevo, es re practico
+
+    }
+
 }
 
-
+/*
+1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
+2. Movimientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
+rango de fechas específico.
+3. Movimientos por tipo: Permitir al usuario ver solo los movimientos de un tipo específico (ingresos,
+transferencias, pagos).
+4. Movimientos por monto: Listar todos los movimientos que superen o estén por debajo de un
+monto específico.
+5. Transferencias recibidas: Mostrar todas las transferencias que un usuario ha recibido, incluyendo
+detalles del remitente.
+6. Transferencias realizadas: Listar todas las transferencias que un usuario ha realizado, incluyendo
+detalles del destinatario.
+7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros.
+8. Movimientos con retención de IIBB: Filtrar y listar los movimientos que han tenido retención de
+Ingresos Brutos.
+9. Usuarios con saldo bajo: Identificar y listar usuarios cuyo saldo esté por debajo de un umbral
+específico.
+10. Actividad de usuario: Proporcionar un resumen de la actividad de un usuario, incluyendo el
+número total de movimientos, total ingresado, total transferido y total pagado
+*/
