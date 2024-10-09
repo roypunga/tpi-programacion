@@ -2,8 +2,9 @@
 #include <time.h>
 
 void cargarUsuario();
+void mostrarUnUsuario();
 
-struct struct_usuario {
+struct struct_usuario{
 	char nombre[50];
     long int cuil, cvu, celular;
     char email[30], alias[30];
@@ -93,8 +94,7 @@ void menuUsuario(){
 				printf("2. Transferir dinero\n");
 				printf("3. Listar movimientos\n");
 				printf("4. Pagar\n");
-				printf("5. Ver tu informacion\n");
-				printf("6. Volver\n");
+				printf("5. Volver\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -143,11 +143,8 @@ void menuAdministrador(){
 
 		do {
         printf("0-Salir\t\t");
-		printf("1-Crear usuario\t\t");
-		printf("2-Modificar usuario\t\t");
-		printf("3-Ver saldos\t\t");
-		printf("4-Ver movimientos\t\t\n");
-
+		printf("1-Usuario\t\t");
+		printf("2-Administrador\t\t");
         scanf("%d", &usrChoice);
 
         switch(usrChoice) {
@@ -155,17 +152,11 @@ void menuAdministrador(){
                 printf("Saliendo...\n");
                 break;
             case 1:
-                cargarUsuario();
+                menuUsuario();
                 break;
             case 2:
-                //modificarUsuario();
+                menuAdministrador();
                 break;
-			case 3:
-				// verSaldos();
-				break;
-			case 4:
-				//verMovimientos();
-				break;
             default:
                 printf("Opción inválida\n");
         }
@@ -204,46 +195,6 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 	return -1;
 }
 
-void cargarUsuario(){
-	int parar=0;
-	FILE *file_usuarios=fopen("Usuarios.dat","a+w");
-	if(file_usuarios!=NULL){
-		while(parar!=1){
-			while(!feof(file_usuarios)){
-				fread(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
-			}
-			usuario.cvu = usuario.cvu + 1;
-			
-			printf("Ingrese su nombre\n-----> ");
-			fflush(stdin);
-			fgets(usuario.nombre,50,stdin);
-			
-			printf("Ingrese su CUIL\n-----> ");
-			scanf("%ld",&usuario.cuil);
-			
-			printf("Ingrese su numero de celular\n-----> ");
-			scanf("%ld",&usuario.cuil);
-			
-			printf("Ingrese su email\n-----> ");
-			scanf("%s",&usuario.email[0]);
-			
-			printf("Ingrese su alias\n-----> ");
-			fflush(stdin);
-			fgets(usuario.alias,30,stdin);
-			
-			printf("Tiene que pagar IVA?(0. NO\n1.SI)\n-----> ");
-			scanf("%i",&usuario.iva);
-			
-			usuario.saldo=0;
-			
-			fwrite(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
-			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
-			rewind(file_usuarios);
-		}
-	}
-	else printf("ERROR: no se pudo abrir el archivo");
-}
-
 void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
 	FILE *fp1;
 	int encon=0;
@@ -265,6 +216,59 @@ void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento
 	fclose(fp1);//cierren sus archivos qliaos
 }
 
+void cargarUsuario(){
+	int parar=0;
+	FILE *file_usuarios=fopen("Usuarios.dat","a+b");
+	if(file_usuarios!=NULL){
+		while(parar!=1){
+			
+			printf("Ingrese su nombre\n-----> ");
+			fflush(stdin);
+			fgets(usuario.nombre,50,stdin);
+				
+			printf("Ingrese su CUIL\n-----> ");
+			scanf("%ld",&usuario.cuil);
+			
+			printf("Ingrese su numero de celular\n-----> ");
+			scanf("%ld",&usuario.cuil);
+			
+			printf("Ingrese su email\n-----> ");
+			fflush(stdin);
+			fgets(usuario.email,30,stdin);
+			
+			printf("Ingrese su alias\n-----> ");
+			fflush(stdin);
+			fgets(usuario.alias,30,stdin);
+			
+			printf("Tiene que pagar IVA?(0. NO - 1. SI)\n-----> ");
+			scanf("%i",&usuario.iva);
+			
+			usuario.saldo=0;
+			
+			fwrite(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
+			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
+			scanf("%i", &parar);
+			fflush(stdin);
+			rewind(file_usuarios);
+		}
+		fclose(file_usuarios);
+	}
+	else printf("ERROR: no se pudo abrir el archivo");
+}
+
+void mostrarUnUsuario(){
+	FILE *f=fopen("Usuarios.dat","rb");
+	if(f!=NULL){
+		printf("\n----------DATOS USUARIOS----------\n\n");
+		fread(&usuario,sizeof(struct struct_usuario),1,f);
+		while(!feof(f)){
+			printf("\nUsuario: %s\nCuil: %ld\nCVU: %ld\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			fread(&usuario,sizeof(struct struct_usuario),1,f);
+		}
+		printf("\n--------------------------------------------------\n");
+		fclose(f);
+	}
+}
 
 
 /*
