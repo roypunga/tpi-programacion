@@ -2,7 +2,8 @@
 #include <time.h>
 
 void cargarUsuario();
-void mostrarUnUsuario();
+void mostrarUsuarios();
+void consultarSaldo(long int cvu);
 
 struct struct_usuario{
 	char nombre[50];
@@ -22,14 +23,17 @@ struct struct_movimiento{
     int tipo; //ingreso transferencia o pago
     float monto;
     float iibb;
-
     time_t fecha;
     char fecha_string[30];
-
-
     long int cuilRecibe;
     long int cuilEnvia;
 }movimiento;
+
+struct struct_pago{
+	long int cuilPago;
+	char nombreEmpresa[50];
+	float monto;
+}pago;
 
 int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
@@ -41,9 +45,9 @@ int main() {
 	printf("Bienvenido a PagarMercado! A que menu desea acceder?\n");
 
 	do {
-        printf("0-Salir\t\t");
-		printf("1-Usuario\t\t");
-		printf("2-Administrador\t\t");
+        printf("0-Salir\n");
+		printf("1-Usuario\n");
+		printf("2-Administrador\n");
         scanf("%d", &usrChoice);
 
         switch(usrChoice) {
@@ -79,7 +83,7 @@ void menuUsuario(){
 
 	FILE *file_usuarios;
 
-	if((file_usuarios = fopen("Usuarios.dat", "rb")) != NULL){
+	if((file_usuarios = fopen("Usuarios.dat", "r+b")) != NULL){
 
 		if((posicionUsuario = checkCuil(usrCuil, file_usuarios)) != -1){
 			
@@ -87,14 +91,18 @@ void menuUsuario(){
 			fseek(file_usuarios, sizeof(usuario)*(posicionUsuario), SEEK_SET);
 			fread(&usuario, sizeof(struct struct_usuario), 1, file_usuarios);
 
+			fclose(file_usuarios);
+
 			printf("\nBienvenido %s! Que operacion desea realizar?\n", usuario.nombre);
 
 			do {
+				printf("0. Volver\n");
 				printf("1. Ingresar dinero\n");
 				printf("2. Transferir dinero\n");
 				printf("3. Listar movimientos\n");
 				printf("4. Pagar\n");
-				printf("5. Volver\n");
+				printf("5. Listar pagos");
+				printf("5. Mostrar mis datos\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -107,15 +115,24 @@ void menuUsuario(){
 						break;
 					case 2:
 						printf("2");
-						//transferirDinero();
+						//transferirDinero(cvuDestino, monto);
+						//tiene que restar a la cuenta que envia, sumar a la de destino y guardar la transferencia:
+						//destino: origen: monto:
 						break;
 					case 3:
 						printf("3");
-						//menuListarMovimientos();
+						//menuListarMovimientosUsuarios();
+						//1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 						break;
 					case 4:
 						printf("4");
-						//pagar();
+						//pagar(); //esta funcion tiene que crear/aniadir pagos.dat
+						break;
+					case 5:
+						// listarPagos();
+						break;
+					case 6:
+						//mostrarUnUsuario(usuario.cuil); 
 						break;
 					default:
 						printf("Opción inválida\n");
@@ -138,13 +155,18 @@ void menuAdministrador(){
 	printf("\nIngrese la pass de administrador(le puse 123 por ahora): ");
 	scanf("%d", &usrChoice);
 
+	long int usrCuil;
+
 	if(usrChoice == 123){
 		printf("\nBienvenido administrador! Que desea hacer?");
 
 		do {
-        printf("0-Salir\t\t");
-		printf("1-Usuario\t\t");
-		printf("2-Administrador\t\t");
+        printf("0-Salir\n");
+		printf("1-Crear usuario\n");
+		printf("2-Mostrar datos de un usuario\n");
+		printf("3-Mostrar los datos de todos los usuarios\n");
+		printf("4-Modificar un usuario\n");
+
         scanf("%d", &usrChoice);
 
         switch(usrChoice) {
@@ -152,11 +174,16 @@ void menuAdministrador(){
                 printf("Saliendo...\n");
                 break;
             case 1:
-                menuUsuario();
-                break;
-            case 2:
-                menuAdministrador();
-                break;
+				cargarUsuario();
+				break;
+			case 2:
+				//mostrarUnUsuario(cuil)
+				break;
+			case 3:
+				mostrarUsuarios(); 
+				break;
+			
+
             default:
                 printf("Opción inválida\n");
         }
@@ -217,46 +244,68 @@ void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento
 }
 
 void cargarUsuario(){
-	int parar=0;
-	FILE *file_usuarios=fopen("Usuarios.dat","a+b");
-	if(file_usuarios!=NULL){
-		while(parar!=1){
+	
+	int usrChoice;
+    FILE *file_usuarios;
+
+
+    if((file_usuarios = fopen("Usuarios.dat", "a+b")) != NULL){
+
+		do{
+			printf("\nIngrese el nombre: ");
+			getchar();
+			fgets(usuario.nombre, 50, stdin);
 			
-			printf("Ingrese su nombre\n-----> ");
+
+			denuevo:
+
+			printf("\nIngrese el cuil: ");
 			fflush(stdin);
-			fgets(usuario.nombre,50,stdin);
-				
-			printf("Ingrese su CUIL\n-----> ");
-			scanf("%ld",&usuario.cuil);
+			scanf("%ld", &usuario.cuil);
 			
-			printf("Ingrese su numero de celular\n-----> ");
-			scanf("%ld",&usuario.cuil);
 			
-			printf("Ingrese su email\n-----> ");
-			fflush(stdin);
-			fgets(usuario.email,30,stdin);
+			// if(checkCuil(usuario.cuil, file_usuarios) != -1){
+			// 	printf("Ese cuil ya existe, ingrese de nuevo");
+			// 	goto denuevo;
+			// }
+
+			// fseek(file_usuarios, 0, SEEK_END);
+
+			printf("\nIngrese el mail: ");
+			getchar();
+			fgets(usuario.email, 30, stdin);
 			
-			printf("Ingrese su alias\n-----> ");
-			fflush(stdin);
-			fgets(usuario.alias,30,stdin);
+
+			printf("\nIngrese el alias: ");			
+			fgets(usuario.alias, 30, stdin);
 			
-			printf("Tiene que pagar IVA?(0. NO - 1. SI)\n-----> ");
-			scanf("%i",&usuario.iva);
+
+			printf("\nIngrese el telefono: ");
+			scanf("%ld", &usuario.celular);		
 			
-			usuario.saldo=0;
+
+			printf("\nEste usuario paga iva? 1/0: ");
+			scanf("%d", &usuario.iva);
 			
-			fwrite(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
-			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
-			scanf("%i", &parar);
-			fflush(stdin);
-			rewind(file_usuarios);
-		}
-		fclose(file_usuarios);
-	}
-	else printf("ERROR: no se pudo abrir el archivo");
+			
+			usuario.saldo = 0;
+
+			fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
+
+			printf("\nDesea cargar otro usuario? (1/0)");
+			scanf("%d", &usrChoice);
+
+
+		}while(usrChoice != 0);
+
+    }
+    else{
+        printf("\nError al abrir el archivo");
+    }
+	fclose(file_usuarios);
 }
 
-void mostrarUnUsuario(){
+void mostrarUsuarios(){
 	FILE *f=fopen("Usuarios.dat","rb");
 	if(f!=NULL){
 		printf("\n----------DATOS USUARIOS----------\n\n");
@@ -272,22 +321,32 @@ void mostrarUnUsuario(){
 
 
 /*
-1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
+1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta. X
+
+
 2. Movipmientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
 rango de fechas específico.
+
 3. Movimientos por tipo: Permitir al usuario ver solo los movimientos de un tipo específico (ingresos,
 transferencias, pagos).
+
 4. Movimientos por monto: Listar todos los movimientos que superen o estén por debajo de un
 monto específico.
+
 5. Transferencias recibidas: Mostrar todas las transferencias que un usuario ha recibido, incluyendo
 detalles del remitente.
+
 6. Transferencias realizadas: Listar todas las transferencias que un usuario ha realizado, incluyendo
 detalles del destinatario.
+
 7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros.
+
 8. Movimientos con retención de IIBB: Filtrar y listar los movimientos que han tenido retención de
 Ingresos Brutos.
+
 9. Usuarios con saldo bajo: Identificar y listar usuarios cuyo saldo esté por debajo de un umbral
 específico.
+
 10. Actividad de usuario: Proporcionar un resumen de la actividad de un usuario, incluyendo el
 número total de movimientos, total ingresado, total transferido y total pagado
 */
