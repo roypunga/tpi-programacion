@@ -33,6 +33,7 @@ struct struct_movimiento{
 int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
 void menuUsuario();
+void ingresarDinero();
 
 int usrChoice;
 int main() {    
@@ -285,3 +286,14 @@ específico.
 10. Actividad de usuario: Proporcionar un resumen de la actividad de un usuario, incluyendo el
 número total de movimientos, total ingresado, total transferido y total pagado
 */
+void ingresarDinero(){
+
+	float dineroAIngresar;
+
+	printf("\nCuanto dinero quiere ingresar?: ");
+	scanf("%f", &dineroAIngresar);
+
+	usuario.saldo += dineroAIngresar;
+
+	printf("\nSe ingreso correctamente, su saldo ahora es de: %.2f\n", usuario.saldo);
+}
