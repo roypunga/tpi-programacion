@@ -255,6 +255,7 @@ void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento
 	fclose(fp1);//cierren sus archivos qliaos
 }
 
+
 /*
 1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
 2. Movipmientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
