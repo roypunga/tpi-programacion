@@ -133,6 +133,37 @@ void menuUsuario(){
 
 }
 
+void menuAdministrador(){
+	printf("\nIngrese la pass de administrador(le puse 123 por ahora): ");
+	scanf("%d", &usrChoice);
+
+	if(usrChoice == 123){
+		printf("\nBienvenido administrador! Que desea hacer?");
+
+		do {
+        printf("0-Salir\t\t");
+		printf("1-Usuario\t\t");
+		printf("2-Administrador\t\t");
+        scanf("%d", &usrChoice);
+
+        switch(usrChoice) {
+            case 0:
+                printf("Saliendo...\n");
+                break;
+            case 1:
+                menuUsuario();
+                break;
+            case 2:
+                menuAdministrador();
+                break;
+            default:
+                printf("Opción inválida\n");
+        }
+    } while(usrChoice != 0);
+
+	}
+
+}
 
 //para usar esta funcion hay que pasarle el ptr al file ya hecho, pq sino hay quilombo
 //esta funcion devuelve -1 si no existe el cuil
