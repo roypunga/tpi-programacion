@@ -133,6 +133,14 @@ void menuUsuario(){
 
 }
 
+
+//para usar esta funcion hay que pasarle el ptr al file ya hecho, pq sino hay quilombo
+//esta funcion devuelve -1 si no existe el cuil
+//si lo encuentra devuelve la posicion del usuario en Usuarios.dat.
+
+// el quilombo seria pq esta funcion probablemente se va a usar dentro de otra funcion que ya tiene abierto el file
+// entonces si se abre de nuevo adentro de la funcion estaria abierto 2 veces el mismo archivo
+// y eso puede romper todo
 int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 
     int encontro = 0;
