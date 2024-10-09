@@ -30,6 +30,7 @@ struct struct_movimiento{
     long int cuilEnvia;
 }movimiento;
 
+int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
 void menuUsuario();
 
@@ -41,7 +42,7 @@ int main() {
 	do {
         printf("0-Salir\t\t");
 		printf("1-Usuario\t\t");
-
+		printf("2-Administrador\t\t");
         scanf("%d", &usrChoice);
 
         switch(usrChoice) {
@@ -62,61 +63,105 @@ int main() {
 
 void menuUsuario(){
 
-long int usrCuil;
+	long int usrCuil;
+	int posicionUsuario;
 
-printf("\nIngrese su cuil: ");
-scanf("%ld", &usrCuil);
+	printf("\nIngrese su cuil(-1 para volver): ");
 
-FILE *file_usuarios;
+	principio:
 
+	scanf("%ld", &usrCuil);
 
-	// do {
-    //     printf("0-Salir\t\t");
-	// 	printf("1-Usuario\t\t");
+	if(usrCuil == -1){
+		return;
+	}
 
-    //     scanf("%d", &usrChoice);
+	FILE *file_usuarios;
 
-    //     switch(usrChoice) {
-    //         case 0:
-    //             printf("Saliendo...\n");
-    //             break;
-    //         case 1:
-    //             menuUsuario();
-    //             break;
-    //         case 2:
-    //             menuAdministrador();
-    //             break;
-    //         default:
-    //             printf("Opción inválida\n");
-    //     }
-    // } while(usrChoice != 0);
+	if((file_usuarios = fopen("Usuarios.dat", "rb")) != NULL){
+
+		if((posicionUsuario = checkCuil(usrCuil, file_usuarios)) != -1){
+			
+			rewind(file_usuarios);
+			fseek(file_usuarios, sizeof(usuario)*(posicionUsuario), SEEK_SET);
+			fread(&usuario, sizeof(struct struct_usuario), 1, file_usuarios);
+
+			printf("\nBienvenido %s! Que operacion desea realizar?\n", usuario.nombre);
+
+			do {
+				printf("1. Ingresar dinero\n");
+				printf("2. Transferir dinero\n");
+				printf("3. Listar movimientos\n");
+				printf("4. Pagar\n");
+				printf("5. Volver\n");
+				scanf("%d", &usrChoice);
+
+				switch(usrChoice) {
+					case 0:
+						printf("Volviendo...\n");
+						break;
+					case 1:
+						printf("1");
+						//ingresarDinero();
+						break;
+					case 2:
+						printf("2");
+						//transferirDinero();
+						break;
+					case 3:
+						printf("3");
+						//menuListarMovimientos();
+						break;
+					case 4:
+						printf("4");
+						//pagar();
+						break;
+					default:
+						printf("Opción inválida\n");
+				}
+   		 	} while(usrChoice != 0);
+		}
+		else{
+			printf("\nNo se encontro el cuil, ingrese nuevamente: ");
+			goto principio;
+		}
+
+	}
+	else{
+		printf("ERROR");
+	}
 
 }
 
 int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 
     int encontro = 0;
+	int contador = 0;
 
     rewind(file_usuarios);
 
     while(fread(&usuario, sizeof(usuario), 1, file_usuarios) && encontro != 1){
 
+		contador += 1;
         if(usuario.cuil == cuilABuscar){
             encontro = 1;
         }
 
     }
 
-    return encontro;
+    if(encontro == 1){
+		return contador - 1;
+	}
+	return -1;
 }
 
 void cargarUsuario(){
 	int parar=0;
-	FILE *f=fopen("Usuarios.dat","a+w");
-	if(f!=NULL){
+	FILE *file_usuarios=fopen("Usuarios.dat","a+w");
+	if(file_usuarios!=NULL){
 		while(parar!=1){
-			while(!feof(f)){
-				fread(&usuario,sizeof(struct struct_usuario),1,f);
+			while(!feof(file_usuarios)){
+				fread(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
 			}
 			usuario.cvu = usuario.cvu + 1;
 			
@@ -142,9 +187,9 @@ void cargarUsuario(){
 			
 			usuario.saldo=0;
 			
-			fwrite(&usuario,sizeof(struct struct_usuario),1,f);
+			fwrite(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
 			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
-			rewind(f);
+			rewind(file_usuarios);
 		}
 	}
 	else printf("ERROR: no se pudo abrir el archivo");
