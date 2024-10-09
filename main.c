@@ -93,7 +93,8 @@ void menuUsuario(){
 				printf("2. Transferir dinero\n");
 				printf("3. Listar movimientos\n");
 				printf("4. Pagar\n");
-				printf("5. Volver\n");
+				printf("5. Ver tu informacion\n");
+				printf("6. Volver\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -142,8 +143,11 @@ void menuAdministrador(){
 
 		do {
         printf("0-Salir\t\t");
-		printf("1-Usuario\t\t");
-		printf("2-Administrador\t\t");
+		printf("1-Crear usuario\t\t");
+		printf("2-Modificar usuario\t\t");
+		printf("3-Ver saldos\t\t");
+		printf("4-Ver movimientos\t\t\n");
+
         scanf("%d", &usrChoice);
 
         switch(usrChoice) {
@@ -151,11 +155,17 @@ void menuAdministrador(){
                 printf("Saliendo...\n");
                 break;
             case 1:
-                menuUsuario();
+                cargarUsuario();
                 break;
             case 2:
-                menuAdministrador();
+                //modificarUsuario();
                 break;
+			case 3:
+				// verSaldos();
+				break;
+			case 4:
+				//verMovimientos();
+				break;
             default:
                 printf("Opción inválida\n");
         }
