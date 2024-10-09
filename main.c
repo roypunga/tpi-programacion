@@ -2,6 +2,7 @@
 #include <time.h>
 
 void cargarUsuario();
+void mostrarUnUsuario();
 
 struct struct_usuario {
 	char nombre[50];
@@ -102,6 +103,7 @@ void menuUsuario(){
 						break;
 					case 1:
 						printf("1");
+						mostrarUnUsuario();
 						//ingresarDinero();
 						break;
 					case 2:
@@ -230,6 +232,7 @@ void cargarUsuario(){
 			printf("El usuario se cargo exitosamente\nPresione 0 para cargar otro usuario\nPresione 1 para volver al menu principal\n-----> ");
 			rewind(file_usuarios);
 		}
+		fclose(file_usuarios);
 	}
 	else printf("ERROR: no se pudo abrir el archivo");
 }
@@ -254,6 +257,22 @@ void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento
 	}
 	fclose(fp1);//cierren sus archivos qliaos
 }
+
+void mostrarUnUsuario(){
+	FILE *f=fopen("Usuarios.dat","rb");
+	if(f!=NULL){
+		FILE *f;
+		printf("\n----------DATOS USUARIOS----------\n\n");
+		fread(&usuario,sizeof(struct struct_usuario),1,f);
+		while(!feof(f)){
+			printf("Usuario: %s\nCuil: %ld\nCVU: %ld\nCelular: %ld\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			fread(&usuario,sizeof(struct struct_usuario),1,f);
+		}
+		printf("--------------------------------------------------\n");
+		fclose(f);
+	}
+}
+	
 
 /*
 1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
