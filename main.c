@@ -4,7 +4,7 @@
 void cargarUsuario();
 void mostrarUnUsuario();
 
-struct struct_usuario {
+struct struct_usuario{
 	char nombre[50];
     long int cuil, cvu, celular;
     char email[30], alias[30];
@@ -260,10 +260,10 @@ void mostrarUnUsuario(){
 	FILE *f=fopen("Usuarios.dat","rb");
 	if(f!=NULL){
 		printf("\n----------DATOS USUARIOS----------\n\n");
-		fread(&usuario,sizeof(struct_usuario),1,f);
+		fread(&usuario,sizeof(struct struct_usuario),1,f);
 		while(!feof(f)){
 			printf("\nUsuario: %s\nCuil: %ld\nCVU: %ld\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
-			fread(&usuario,sizeof(struct_usuario),1,f);
+			fread(&usuario,sizeof(struct struct_usuario),1,f);
 		}
 		printf("\n--------------------------------------------------\n");
 		fclose(f);
