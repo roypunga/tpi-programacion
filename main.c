@@ -36,29 +36,78 @@ void menuUsuario();
 int usrChoice;
 int main() {    
 
-    principio:
+	printf("Bienvenido a PagarMercado! A que menu desea acceder?\n");
 
-    printf("Bienvenido a MercadoCobro. A que menu quiere acceder?\n");
-    printf("1-Menu de Usuario\t\t2-Menu de Administrador\n");
+	do {
+        printf("0-Salir\t\t");
+		printf("1-Usuario\t\t");
 
-    scanf("%d", &usrChoice);
+        scanf("%d", &usrChoice);
 
-    switch(usrChoice){
+        switch(usrChoice) {
+            case 0:
+                printf("Saliendo...\n");
+                break;
+            case 1:
+                menuUsuario();
+                break;
+            case 2:
+                menuAdministrador();
+                break;
+            default:
+                printf("Opción inválida\n");
+        }
+    } while(usrChoice != 0);
+}
 
-        case 1:
-            menuUsuario();
-            break;
+void menuUsuario(){
 
-        case 2:
-            menuAdministrador();
-            break;
+long int usrCuil;
 
-        default:
-            printf("Numero invalido, ingrese 1 o 2\n");
-            goto principio; //esto en teoria es muy mala practica pero me chupa un huevo, es re practico
+printf("\nIngrese su cuil: ");
+scanf("%ld", &usrCuil);
+
+FILE *file_usuarios;
+
+
+	// do {
+    //     printf("0-Salir\t\t");
+	// 	printf("1-Usuario\t\t");
+
+    //     scanf("%d", &usrChoice);
+
+    //     switch(usrChoice) {
+    //         case 0:
+    //             printf("Saliendo...\n");
+    //             break;
+    //         case 1:
+    //             menuUsuario();
+    //             break;
+    //         case 2:
+    //             menuAdministrador();
+    //             break;
+    //         default:
+    //             printf("Opción inválida\n");
+    //     }
+    // } while(usrChoice != 0);
+
+}
+
+int checkCuil(long int cuilABuscar, FILE *file_usuarios){
+
+    int encontro = 0;
+
+    rewind(file_usuarios);
+
+    while(fread(&usuario, sizeof(usuario), 1, file_usuarios) && encontro != 1){
+
+        if(usuario.cuil == cuilABuscar){
+            encontro = 1;
+        }
 
     }
 
+    return encontro;
 }
 
 void cargarUsuario(){
@@ -82,7 +131,7 @@ void cargarUsuario(){
 			scanf("%ld",&usuario.cuil);
 			
 			printf("Ingrese su email\n-----> ");
-			scanf("%s",&usuario.email);
+			scanf("%s",&usuario.email[0]);
 			
 			printf("Ingrese su alias\n-----> ");
 			fflush(stdin);
@@ -100,6 +149,7 @@ void cargarUsuario(){
 	}
 	else printf("ERROR: no se pudo abrir el archivo");
 }
+
 void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
 	FILE *fp1;
 	int encon=0;
@@ -123,7 +173,7 @@ void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento
 
 /*
 1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta.
-2. Movimientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
+2. Movipmientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
 rango de fechas específico.
 3. Movimientos por tipo: Permitir al usuario ver solo los movimientos de un tipo específico (ingresos,
 transferencias, pagos).
