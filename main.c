@@ -5,6 +5,9 @@ void cargarUsuario();
 void mostrarUsuarios();
 void consultarSaldo(long int cvu);
 void menuListarMovimientosUsuarios(long int x);
+void listarSoloPagos (long int x);
+void listarSoloTrans(long int x);
+void listarSoloIngr(long int x);
 
 struct struct_usuario{
 	char nombre[50];
@@ -340,15 +343,15 @@ void menuListarMovimientosUsuarios(long int x){
 				scanf("%d", &usrChoiceSeTip);
 					switch (usrChoiceSeTip){
 						case 1:
-							//listarSoloTrans(x);
+							listarSoloTrans(usuario.cuil);
 							cnt=1;
 						break;
 						case 2:
-							//listarSoloIngr(x);
+							listarSoloIngr(usuario.cuil);
 							cnt=1;
 						break;
 						case 3:
-							//listarSoloPagos(x);
+							listarSoloPagos(usuario.cuil);
 							cnt=1;
 						break;
 					default:
@@ -412,6 +415,85 @@ void menuListarMovimientosUsuarios(long int x){
 		}
 	}
 }
+void listarMovimientos (long int x){
+	FILE *fp1;
+	int cont=0;
+	fp1=fopen("movimientos.dat", "rb");
+	if(fp1!=NULL){
+		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
+			if(movimiento.cuilEnvia==x){
+				if(movimiento.tipo==1){
+					printf("\nOperacion: transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					//chequear la mascara de la fecha
+				}
+				else{
+					if(movimiento.tipo==2){
+						printf("\nOperacion: pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					}
+					else{
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t", movimiento.monto, movimiento.fecha);
+					}
+				}
+				cont++;
+			}
+		}
+		printf("\nHay un total de: %d", cont);
+	}
+	else{
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+void listarSoloTrans(long int x){
+	FILE *fp1;
+	fp1=fopen("movimientos.dat", "rb");
+	if(fp1!=NULL){
+		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
+			if((movimiento.cuilEnvia==x)&&(movimiento.tipo==1)){
+				printf("\nOperacion: transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+		}
+	}
+	else{
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+void listarSoloIngr(long int x){
+	FILE *fp1;
+	fp1=fopen("movimientos.dat", "rb");
+	if(fp1!=NULL){
+		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
+			if((movimiento.cuilEnvia==x)&&(movimiento.tipo==3)){
+				printf("\nOperacion: Ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+		}
+	}
+	else{
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+void listarSoloPagos (long int x){
+	FILE *fp1;
+	fp1=fopen("movimientos.dat", "rb");
+	if(fp1!=NULL){
+		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
+			if((movimiento.cuilEnvia==x)&&(movimiento.tipo==2)){
+				printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+		}
+	}
+	else{
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+
+
 //menuListarMovimientosUsuarios();
 //1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 
