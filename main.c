@@ -4,6 +4,7 @@
 void cargarUsuario();
 void mostrarUsuarios();
 void consultarSaldo(long int cvu);
+void menuListarMovimientosUsuarios(long int x);
 
 struct struct_usuario{
 	char nombre[50];
@@ -121,7 +122,7 @@ void menuUsuario(){
 						break;
 					case 3:
 						printf("3");
-						//menuListarMovimientosUsuarios();
+						menuListarMovimientosUsuarios(usuario.cvu);
 						//1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 						break;
 					case 4:
@@ -319,6 +320,100 @@ void mostrarUsuarios(){
 	}
 }
 
+void menuListarMovimientosUsuarios(long int x){
+	int opc, usrChoiceSeTip, cnt=0, cntG=0;
+	printf("\nQue movimientos desea listar? \n\t0.Salir.\n\t1.Todos. \n\t2.Segun tipo. \n\t3.Segun fechas. \n\t4.Segun monto.\n");
+	while(cntG==0){
+	scanf("%d", &opc);
+		switch(opc){
+			case 0:
+				printf("\nSaliendo...");
+				cntG=1;
+			break;
+			case 1:
+				//listarMovimientos(x);
+				cntG=1;
+			break;
+			case 2: 
+				printf("\nListar segun tipo: \n\t1.Transferencias. \n\t2.Ingresos. \n\t3.Pagos.\n");
+				while(cnt==0){
+				scanf("%d", &usrChoiceSeTip);
+					switch (usrChoiceSeTip){
+						case 1:
+							//listarSoloTrans(x);
+							cnt=1;
+						break;
+						case 2:
+							//listarSoloIngr(x);
+							cnt=1;
+						break;
+						case 3:
+							//listarSoloPagos(x);
+							cnt=1;
+						break;
+					default:
+						printf("\nIngrese una opcion valida: ");
+						cnt=0;
+					break;
+					}
+				}
+				cntG=1;
+			break;
+			case 3:
+				printf("\nListar segun fecha: \n\t1.Entre 2 fehcas. \n\t2.Una fecha en particular. \n");
+				while(cnt==0){
+				scanf("%d", &usrChoiceSeTip);
+					switch (usrChoiceSeTip){
+						case 1:
+							//listarEntrFecha(fecha 1, fecha 2, x);
+							cnt=1;
+						break;
+						case 2:
+							//listarSoloIngr(fecha 1,x);
+							cnt=1;
+						break;
+					default:
+						printf("\nIngrese una opcion valida: ");
+						cnt=0;
+					break;
+					}
+				}
+				cntG=1;
+			break;
+			case 4:
+				printf("\nListar segun monto: \n\t1.Mayor a... \n\t2.Menor a ... \n\t3.Entre ... y ...\n");
+				while(cnt==0){
+				scanf("%d", &usrChoiceSeTip);
+					switch (usrChoiceSeTip){
+						case 1:
+							//listarMovsMayrA(float monto, x);
+							cnt=1;
+						break;
+						case 2:
+							//listarMovsMenrA(float monto, x);
+							cnt=1;
+						break;
+						case 3:
+							//listarMovsEntre(float monto 1, float monto 2,x);
+							cnt=1;
+						break;
+					default:
+						printf("\nIngrese una opcion valida: ");
+						cnt=0;
+					break;
+					}
+				}
+				cntG=1;
+			break;
+			default:
+				printf("\nIngrese una opcion valida: ");
+				cntG=0;
+			break;
+		}
+	}
+}
+//menuListarMovimientosUsuarios();
+//1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 
 /*
 1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta. X
