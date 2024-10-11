@@ -271,6 +271,7 @@ void cargarUsuario(){
 			printf("\nIngrese el nombre: ");
 			getchar();
 			fgets(usuario.nombre, 50, stdin);
+			usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0';
 			
 
 			denuevo:
@@ -290,11 +291,12 @@ void cargarUsuario(){
 			printf("\nIngrese el mail: ");
 			getchar();
 			fgets(usuario.email, 30, stdin);
+			usuario.email[strcspn(usuario.email, "\n")] = '\0';
 			
 
 			printf("\nIngrese el alias: ");			
 			fgets(usuario.alias, 30, stdin);
-			
+			usuario.alias[strcspn(usuario.alias, "\n")] = '\0';
 
 			printf("\nIngrese el telefono: ");
 			scanf("%ld", &usuario.celular);		
@@ -328,7 +330,7 @@ void generarCvu(char *cadena, FILE *file_usuarios){
     int i, j = 0;
 
     char charIdCvuUsuario[11] = "0000000001";
-    char preCadena[25] = "";
+    char preCadena[23] = "";
 
     long int idCvuUsuario;
 
@@ -336,6 +338,8 @@ void generarCvu(char *cadena, FILE *file_usuarios){
 
 
             if((fread(&usuario, sizeof(usuario), 1, file_usuarios)) != NULL){
+
+				printf("ENTRO AL IF");
 
                 fseek(file_usuarios, sizeof(struct struct_usuario)*(-1), SEEK_END);
 
@@ -351,7 +355,7 @@ void generarCvu(char *cadena, FILE *file_usuarios){
 
                 idCvuUsuario = atoi(charIdCvuUsuario);
                 idCvuUsuario += 1;
-                snprintf(charIdCvuUsuario, sizeof(charIdCvuUsuario), "%09ld", idCvuUsuario);
+                snprintf(charIdCvuUsuario, sizeof(charIdCvuUsuario), "%010ld", idCvuUsuario);
 
             }
 
@@ -372,7 +376,7 @@ void mostrarUsuarios(){
 		printf("\n----------DATOS USUARIOS----------\n\n");
 		fread(&usuario,sizeof(struct struct_usuario),1,f);
 		while(!feof(f)){
-			printf("\nUsuario: %s\nCuil: %ld\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			printf("\nUsuario: %s\nCuil: %ld\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
 			fread(&usuario,sizeof(struct struct_usuario),1,f);
 		}
 		printf("\n--------------------------------------------------\n");
