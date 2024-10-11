@@ -1,9 +1,18 @@
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
 
+
+
+#define CODIGO_SEGURIDAD1 "6"
+#define CODIGO_SEGURIDAD2 "8"
+#define CODIGO_PROVEEDOR "6666666"
+
+void generarCvu(char *cadena, FILE *file_usuarios);
 void cargarUsuario();
 void mostrarUsuarios();
-void consultarSaldo(long int cvu);
+void consultarSaldo(char cvu);
 void menuListarMovimientosUsuarios(long int x);
 void listarSoloPagos (long int x);
 void listarSoloTrans(long int x);
@@ -11,15 +20,15 @@ void listarSoloIngr(long int x);
 
 struct struct_usuario{
 	char nombre[50];
-    long int cuil, cvu, celular;
-    char email[30], alias[30];
+    long int cuil, celular;
+    char email[30], alias[30], cvu[22];
     int iva;
     float saldo;
 }usuario;
 
 struct struct_cuenta {
     int tipo; //caja de ahorro cuenta corriente
-    long int cbu;
+    char cvu[22];
     long int cuil;
 }cuenta;
 
@@ -125,7 +134,7 @@ void menuUsuario(){
 						break;
 					case 3:
 						printf("3");
-						menuListarMovimientosUsuarios(usuario.cvu);
+						menuListarMovimientosUsuarios(atoi(usuario.cvu));
 						//1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 						break;
 					case 4:
@@ -226,7 +235,7 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 	return -1;
 }
 
-void consultarSaldo (long int cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
+void consultarSaldo (char cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
 	FILE *fp1;
 	int encon=0;
 	fp1=fopen("Usuarios.dat", "rb");
@@ -256,6 +265,9 @@ void cargarUsuario(){
     if((file_usuarios = fopen("Usuarios.dat", "a+b")) != NULL){
 
 		do{
+
+			generarCvu(usuario.cvu, file_usuarios);
+
 			printf("\nIngrese el nombre: ");
 			getchar();
 			fgets(usuario.nombre, 50, stdin);
@@ -294,6 +306,8 @@ void cargarUsuario(){
 			
 			usuario.saldo = 0;
 
+			fseek(file_usuarios, 0, SEEK_END);
+
 			fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
 
 			printf("\nDesea cargar otro usuario? (1/0)");
@@ -309,13 +323,53 @@ void cargarUsuario(){
 	fclose(file_usuarios);
 }
 
+void generarCvu(char *cadena, FILE *file_usuarios){
+
+    int i, j = 0;
+
+    char charIdCvuUsuario[10] = "0000000001";
+    char preCadena[22] = "";
+
+    long int idCvuUsuario;
+
+            rewind(file_usuarios);
+
+
+            if(!feof(file_usuarios)){
+                fseek(file_usuarios, sizeof(struct struct_usuario)*(-1), SEEK_END);
+
+                fread(&usuario, sizeof(usuario), 1, file_usuarios);
+
+                for(i = 11, j = 0; i < 21; i++, j++){ //no sabia si esto iba a funcionar, reloco
+
+                    charIdCvuUsuario[j] = usuario.cvu[i];
+ 
+                }
+
+                idCvuUsuario = atoi(charIdCvuUsuario);
+                idCvuUsuario += 1;
+                snprintf(charIdCvuUsuario, sizeof(charIdCvuUsuario), "%09ld", idCvuUsuario);
+
+            }
+
+        strcat(preCadena, "000"); //id cvu
+        strcat(preCadena, CODIGO_PROVEEDOR);
+        strcat(preCadena, CODIGO_SEGURIDAD1);
+        strcat(preCadena, charIdCvuUsuario);
+        strcat(preCadena, CODIGO_SEGURIDAD2);
+
+        strcpy(cadena, preCadena);
+
+}
+
+
 void mostrarUsuarios(){
 	FILE *f=fopen("Usuarios.dat","rb");
 	if(f!=NULL){
 		printf("\n----------DATOS USUARIOS----------\n\n");
 		fread(&usuario,sizeof(struct struct_usuario),1,f);
 		while(!feof(f)){
-			printf("\nUsuario: %s\nCuil: %ld\nCVU: %ld\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			printf("\nUsuario: %s\nCuil: %ld\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
 			fread(&usuario,sizeof(struct struct_usuario),1,f);
 		}
 		printf("\n--------------------------------------------------\n");
