@@ -327,15 +327,16 @@ void generarCvu(char *cadena, FILE *file_usuarios){
 
     int i, j = 0;
 
-    char charIdCvuUsuario[10] = "0000000001";
-    char preCadena[22] = "";
+    char charIdCvuUsuario[11] = "0000000001";
+    char preCadena[25] = "";
 
     long int idCvuUsuario;
 
             rewind(file_usuarios);
 
 
-            if(!feof(file_usuarios)){
+            if((fread(&usuario, sizeof(usuario), 1, file_usuarios)) != NULL){
+
                 fseek(file_usuarios, sizeof(struct struct_usuario)*(-1), SEEK_END);
 
                 fread(&usuario, sizeof(usuario), 1, file_usuarios);
@@ -343,8 +344,10 @@ void generarCvu(char *cadena, FILE *file_usuarios){
                 for(i = 11, j = 0; i < 21; i++, j++){ //no sabia si esto iba a funcionar, reloco
 
                     charIdCvuUsuario[j] = usuario.cvu[i];
+					
  
                 }
+				charIdCvuUsuario[j] = '\0';
 
                 idCvuUsuario = atoi(charIdCvuUsuario);
                 idCvuUsuario += 1;
