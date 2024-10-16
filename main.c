@@ -17,6 +17,10 @@ void menuListarMovimientosUsuarios(long int x);
 void listarSoloPagos (long int x);
 void listarSoloTrans(long int x);
 void listarSoloIngr(long int x);
+void listarMovsMayrA(long int x, float mnt);
+void listarMovsMenrA(long int x, float mnt);
+void listarMovsEntre(long int x, float mnt1, float mnt2);
+void listarMovimientos(long int x);
 
 struct struct_usuario{
 	char nombre[50];
@@ -241,8 +245,8 @@ void consultarSaldo (char cvu){//le pasan el cvu desde el main en el momento q s
 	fp1=fopen("Usuarios.dat", "rb");
 	if(fp1!=NULL){
 		while((encon==0)&&((fread(&usuario,sizeof(usuario),1,fp1))==1)){
-			if(usuario.cvu==cvu){
-				printf("\nCuenta %ld con un saldo de: $%.2f", usuario.saldo);
+			if(strcmp(usuario.cvu, cvu)){
+				printf("\nCuenta con un saldo de: $%.2f", usuario.saldo);
 				encon=1;
 			}
 		}
@@ -385,6 +389,7 @@ void mostrarUsuarios(){
 }
 
 void menuListarMovimientosUsuarios(long int x){
+	float monto1=0.0, monto2=0.0;
 	int opc, usrChoiceSeTip, cnt=0, cntG=0;
 	printf("\nQue movimientos desea listar? \n\t0.Salir.\n\t1.Todos. \n\t2.Segun tipo. \n\t3.Segun fechas. \n\t4.Segun monto.\n");
 	while(cntG==0){
@@ -395,7 +400,7 @@ void menuListarMovimientosUsuarios(long int x){
 				cntG=1;
 			break;
 			case 1:
-				//listarMovimientos(x);
+				listarMovimientos(x);
 				cntG=1;
 			break;
 			case 2: 
@@ -404,15 +409,15 @@ void menuListarMovimientosUsuarios(long int x){
 				scanf("%d", &usrChoiceSeTip);
 					switch (usrChoiceSeTip){
 						case 1:
-							listarSoloTrans(usuario.cuil);
+							listarSoloTrans(x);
 							cnt=1;
 						break;
 						case 2:
-							listarSoloIngr(usuario.cuil);
+							listarSoloIngr(x);
 							cnt=1;
 						break;
 						case 3:
-							listarSoloPagos(usuario.cuil);
+							listarSoloPagos(x);
 							cnt=1;
 						break;
 					default:
@@ -450,15 +455,22 @@ void menuListarMovimientosUsuarios(long int x){
 				scanf("%d", &usrChoiceSeTip);
 					switch (usrChoiceSeTip){
 						case 1:
-							//listarMovsMayrA(float monto, x);
+							printf("\nIngrese el monto minimo a partir del cual listar: ");
+							scanf("%f", &monto1);
+							listarMovsMayrA(x, monto1);
 							cnt=1;
 						break;
 						case 2:
-							//listarMovsMenrA(float monto, x);
+							printf("\nIngrese monto maximo bajo el cual listar: ");
+							scanf("%f", monto1);
+							listarMovsMenrA(x, monto1);
 							cnt=1;
 						break;
 						case 3:
-							//listarMovsEntre(float monto 1, float monto 2,x);
+							printf("\nIngrese rango de valores entre los cuales listar (primero el menor), separados por un ENTER: ");
+							scanf("%f", &monto1);
+							scanf("%f", &monto2);
+							listarMovsEntre(x, monto1, monto2);
 							cnt=1;
 						break;
 					default:
@@ -553,6 +565,91 @@ void listarSoloPagos (long int x){
 	}
 	fclose(fp1);
 }
+void listarMovsMayrA (long int x, float mnt){
+	FILE *fp1;
+	fp1=fopen("movimientos.dat", "rb");
+	if(fp1!=NULL){
+		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
+			if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt)) && (movimiento.tipo == 1)) {
+				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+			else {
+				if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt)) && (movimiento.tipo == 2)) {
+					printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					//chequear la mascara de la fecha
+				}
+				else {
+					if ((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt)) {
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+						//chequear la mascara de la fecha
+					}
+				}
+			}
+		}
+	}
+	else{
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+void listarMovsMenrA(long int x, float mnt) {
+	FILE* fp1;
+	fp1 = fopen("movimientos.dat", "rb");
+	if (fp1 != NULL) {
+		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
+			if (((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) && (movimiento.tipo == 1)) {
+				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+			else {
+				if (((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) && (movimiento.tipo == 2)) {
+					printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					//chequear la mascara de la fecha
+				}
+				else {
+					if ((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) {
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+						//chequear la mascara de la fecha
+					}
+				}
+			}
+		}
+	}
+	else {
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+void listarMovsEntre(long int x, float mnt1, float mnt2) {
+	FILE* fp1;
+	fp1 = fopen("movimientos.dat", "rb");
+	if (fp1 != NULL) {
+		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
+			if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2)&&(movimiento.tipo==1)) {
+				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				//chequear la mascara de la fecha
+			}
+			else {
+				if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2) && (movimiento.tipo == 2)) {
+					printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					//chequear la mascara de la fecha
+				}
+				else {
+					if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2) && (movimiento.tipo == 3)) {
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+						//chequear la mascara de la fecha
+					}
+				}
+			}
+		}
+	}
+	else {
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(fp1);
+}
+
 
 
 //menuListarMovimientosUsuarios();
