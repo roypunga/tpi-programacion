@@ -263,7 +263,7 @@ void consultarSaldo (char cuil){//le pasan el cuil desde el main en el momento q
 
 void cargarUsuario(){
 	
-	int usrChoice, validar,puto;
+	int usrChoice, validar;
     FILE *file_usuarios;
 
 
@@ -284,9 +284,6 @@ void cargarUsuario(){
 			do{
 				printf("\nIngrese el cuil ------> ");
 				validar = scanf("%ld", &usuario.cuil);
-				
-				puto = checkCuil(usuario.cuil, file_usuarios);
-				printf("cuil = %ld ----- validar = %i ----- fverificar =  %i \n\n",usuario.cuil,validar,puto);
 				
 				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1){
 					printf("ERROR: cuil no valido %ld validar: %i",usuario.cuil,validar);
