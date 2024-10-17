@@ -287,7 +287,7 @@ void cargarUsuario(){
 				
 				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1){
 					printf("ERROR: cuil no valido %ld validar: %i",usuario.cuil,validar);
-					fflush(stdin);
+					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
 			} while (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1);
 			
@@ -307,7 +307,7 @@ void cargarUsuario(){
 				validar = scanf("%ld", &usuario.celular);	
 				if(validar != 1){
 					printf("ERROR: numero de celular no valido");
-					fflush(stdin);
+					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
 			} while(validar != 1);
 				
@@ -317,7 +317,7 @@ void cargarUsuario(){
 				validar = scanf("%d", &usuario.iva);	
 				if(validar != 1 || usuario.iva != 1 && usuario.iva != 0){
 					printf("ERROR: no ingreso 1 o 0");
-					fflush(stdin);
+					while (getchar() != '\n'); //reemplazo de fflush(stdin);
 				}
 			} while(validar != 1 || usuario.iva != 1 && usuario.iva != 0);
 			
@@ -333,7 +333,7 @@ void cargarUsuario(){
 				validar = scanf("%d", &usrChoice);
 				if(validar != 1 ||  usrChoice != 1 && usrChoice != 0){
 					printf("ERROR: no ingreso 1 o 0");
-					fflush(stdin);
+					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
 			} while(validar != 1 || usrChoice != 1 && usrChoice != 0);
 			
