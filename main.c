@@ -224,6 +224,8 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 
     rewind(file_usuarios);
 
+    struct struct_usuario usuario;
+
     while(fread(&usuario, sizeof(usuario), 1, file_usuarios) && encontro != 1){
 
 		contador += 1;
@@ -361,8 +363,6 @@ void generarCvu(char *cadena, FILE *file_usuarios){
 
 
             if((fread(&usuario, sizeof(usuario), 1, file_usuarios)) != NULL){
-
-				printf("ENTRO AL IF");
 
                 fseek(file_usuarios, sizeof(struct struct_usuario)*(-1), SEEK_END);
 
