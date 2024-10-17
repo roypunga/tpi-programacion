@@ -236,6 +236,7 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
     if(encontro == 1){
 		return contador - 1;
 	}
+	usuario.cuil = cuilABuscar;
 	return -1;
 }
 
@@ -262,7 +263,7 @@ void consultarSaldo (char cvu){//le pasan el cvu desde el main en el momento q s
 
 void cargarUsuario(){
 	
-	int usrChoice;
+	int usrChoice, validar,puto;
     FILE *file_usuarios;
 
 
@@ -272,42 +273,56 @@ void cargarUsuario(){
 
 			generarCvu(usuario.cvu, file_usuarios);
 
-			printf("\nIngrese el nombre: ");
+			printf("\nIngrese el nombre -----> ");
 			getchar();
 			fgets(usuario.nombre, 50, stdin);
 			usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0';
 			
 
 			denuevo:
-
-			printf("\nIngrese el cuil: ");
-			fflush(stdin);
-			scanf("%ld", &usuario.cuil);
 			
+			do{
+				printf("\nIngrese el cuil ------> ");
+				validar = scanf("%ld", &usuario.cuil);
+				
+				puto = checkCuil(usuario.cuil, file_usuarios);
+				printf("cuil = %ld ----- validar = %i ----- fverificar =  %i \n\n",usuario.cuil,validar,puto);
+				
+				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1){
+					printf("ERROR: cuil no valido %ld validar: %i",usuario.cuil,validar);
+					fflush(stdin);
+				}
+			} while (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1);
 			
-			// if(checkCuil(usuario.cuil, file_usuarios) != -1){
-			// 	printf("Ese cuil ya existe, ingrese de nuevo");
-			// 	goto denuevo;
-			// }
 
-			// fseek(file_usuarios, 0, SEEK_END);
-
-			printf("\nIngrese el mail: ");
+			printf("\nIngrese el mail ------> ");
 			getchar();
 			fgets(usuario.email, 30, stdin);
 			usuario.email[strcspn(usuario.email, "\n")] = '\0';
 			
 
-			printf("\nIngrese el alias: ");			
+			printf("\nIngrese el alias -----> ");			
 			fgets(usuario.alias, 30, stdin);
 			usuario.alias[strcspn(usuario.alias, "\n")] = '\0';
-
-			printf("\nIngrese el telefono: ");
-			scanf("%ld", &usuario.celular);		
 			
-
-			printf("\nEste usuario paga iva? 1/0: ");
-			scanf("%d", &usuario.iva);
+			do{
+				printf("\nIngrese el telefono ------> ");
+				validar = scanf("%ld", &usuario.celular);	
+				if(validar != 1){
+					printf("ERROR: numero de celular no valido");
+					fflush(stdin);
+				}
+			} while(validar != 1);
+				
+			
+			do{
+				printf("\nEste usuario paga iva? (1 == si // 0 == no) ----->  ");
+				validar = scanf("%d", &usuario.iva);	
+				if(validar != 1 || usuario.iva != 1 && usuario.iva != 0){
+					printf("ERROR: no ingreso 1 o 0");
+					fflush(stdin);
+				}
+			} while(validar != 1 || usuario.iva != 1 && usuario.iva != 0);
 			
 			
 			usuario.saldo = 0;
@@ -316,7 +331,7 @@ void cargarUsuario(){
 
 			fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
 
-			printf("\nDesea cargar otro usuario? (1/0)");
+			printf("\nDesea cargar otro usuario? (1 == si // 0 == no) ----->  ");
 			scanf("%d", &usrChoice);
 
 
