@@ -327,9 +327,16 @@ void cargarUsuario(){
 			fseek(file_usuarios, 0, SEEK_END);
 
 			fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
-
-			printf("\nDesea cargar otro usuario? (1 == si // 0 == no) ----->  ");
-			scanf("%d", &usrChoice);
+			
+			do{
+				printf("\nDesea cargar otro usuario? (1 == si // 0 == no) ----->  ");
+				validar = scanf("%d", &usrChoice);
+				if(validar != 1 ||  usrChoice != 1 && usrChoice != 0){
+					printf("ERROR: no ingreso 1 o 0");
+					fflush(stdin);
+				}
+			} while(validar != 1 || usrChoice != 1 && usrChoice != 0);
+			
 
 
 		}while(usrChoice != 0);
