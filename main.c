@@ -40,8 +40,7 @@ struct struct_movimiento{
     int tipo; //ingreso transferencia o pago
     float monto;
     float iibb;
-    time_t fecha;
-    char fecha_string[30];
+    struct fch fecha;
     long int cuilRecibe;
     long int cuilEnvia;
 }movimiento;
@@ -51,6 +50,10 @@ struct struct_pago{
 	char nombreEmpresa[50];
 	float monto;
 }pago;
+
+struct fch{
+	int dia, mes, anio;
+}
 
 int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
