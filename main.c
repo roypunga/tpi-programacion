@@ -266,7 +266,6 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 	return -1;
 }
 
-<<<<<<< HEAD
 int checkCvu(char *cvuABuscar, FILE *file_usuarios){
 
     int encontro = 0;
@@ -290,27 +289,18 @@ int checkCvu(char *cvuABuscar, FILE *file_usuarios){
 }
 
 void consultarSaldo (char cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
-=======
-void consultarSaldo (char cuil){//le pasan el cuil desde el main en el momento q se logea el usuario
->>>>>>> 81b08118c3a77dc0c38ee26416d7f8988dbcd834
 	FILE *fp1;
 	int encon=0;
 	fp1=fopen("Usuarios.dat", "rb");
 	if(fp1!=NULL){
 		while((encon==0)&&((fread(&usuario,sizeof(usuario),1,fp1))==1)){
-<<<<<<< HEAD
 			if(usuario.cvu==&cvu){
 				printf("\nCuenta %s con un saldo de: $%.2f",usuario.cvu , usuario.saldo);
 				encon=1;	
-=======
-			if(usuario.cuil==cuil){
-				printf("\nCuenta con un saldo de: $%.2f", usuario.saldo);
-				encon=1;
->>>>>>> 81b08118c3a77dc0c38ee26416d7f8988dbcd834
 			}
 		}
 		if(encon==0){
-			printf("\nNo se encontro ninguna cuenta con cuil: %ld", cuil);//se podria verificar el cvu antes de pasarlo para aca, es mas eficiente
+			printf("\nNo se encontro ninguna cuenta con cvu: %s", usuario.cvu);//se podria verificar el cvu antes de pasarlo para aca, es mas eficiente
 		}
 	}
 	else {
