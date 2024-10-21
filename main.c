@@ -24,6 +24,11 @@ void listarMovimientos(long int x);
 
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
+struct fch{
+	int dia, mes, anio;
+};
+
+
 struct struct_usuario{
 	char nombre[50];
     long int cuil, celular;
@@ -53,9 +58,6 @@ struct struct_pago{
 	float monto;
 }pago;
 
-struct fch{
-	int dia, mes, anio;
-}
 
 int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
