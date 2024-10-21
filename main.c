@@ -18,17 +18,19 @@ void listarSoloPagos (long int x);
 void listarSoloTrans(long int x);
 void listarSoloIngr(long int x);
 
+int checkCvu(char *cvuABuscar, FILE *file_usuarios);
+
 struct struct_usuario{
 	char nombre[50];
     long int cuil, celular;
-    char email[30], alias[30], cvu[22];
+    char email[30], alias[30], cvu[23];
     int iva;
     float saldo;
 }usuario;
 
 struct struct_cuenta {
     int tipo; //caja de ahorro cuenta corriente
-    char cvu[22];
+    char cvu[23];
     long int cuil;
 }cuenta;
 
@@ -168,6 +170,8 @@ void menuAdministrador(){
 	printf("\nIngrese la pass de administrador(le puse 123 por ahora): ");
 	scanf("%d", &usrChoice);
 
+	char cvu[23];
+
 	long int usrCuil;
 
 	if(usrChoice == 123){
@@ -190,7 +194,7 @@ void menuAdministrador(){
 				cargarUsuario();
 				break;
 			case 2:
-				//mostrarUnUsuario(cuil)
+				//mostraruno
 				break;
 			case 3:
 				mostrarUsuarios(); 
@@ -205,6 +209,23 @@ void menuAdministrador(){
 	}
 
 }
+
+/*
+para testear el checkCvu
+
+				printf("\ncvu a buscar: ");
+				getchar();
+				fgets(cvu, 23, stdin);
+				printf("\n%s",cvu);
+				FILE *asdasd = fopen("Usuarios.dat", "rb");
+				int x = checkCvu(cvu, asdasd);
+				if(x != -1){
+					printf("\nencontro, posicion %d", x);
+				}
+				else printf("\nno encontro");
+				fclose(asdasd);
+*/
+
 
 //para usar esta funcion hay que pasarle el ptr al file ya hecho, pq sino hay quilombo
 //esta funcion devuelve -1 si no existe el cuil
@@ -235,15 +256,37 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 	return -1;
 }
 
+int checkCvu(char *cvuABuscar, FILE *file_usuarios){
+
+    int encontro = 0;
+	int contador = 0;
+
+    rewind(file_usuarios);
+
+    while(fread(&usuario, sizeof(usuario), 1, file_usuarios) && encontro != 1){
+
+		contador += 1;
+        if(!strcmp(usuario.cvu, cvuABuscar)){
+            encontro = 1;
+        }
+
+    }
+
+    if(encontro == 1){
+		return contador - 1;
+	}
+	return -1;
+}
+
 void consultarSaldo (char cvu){//le pasan el cvu desde el main en el momento q se logea el usuario
 	FILE *fp1;
 	int encon=0;
 	fp1=fopen("Usuarios.dat", "rb");
 	if(fp1!=NULL){
 		while((encon==0)&&((fread(&usuario,sizeof(usuario),1,fp1))==1)){
-			if(usuario.cvu==cvu){
-				printf("\nCuenta %ld con un saldo de: $%.2f", usuario.saldo);
-				encon=1;
+			if(usuario.cvu==&cvu){
+				printf("\nCuenta %s con un saldo de: $%.2f",usuario.cvu , usuario.saldo);
+				encon=1;	
 			}
 		}
 		if(encon==0){
