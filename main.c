@@ -132,7 +132,7 @@ void menuUsuario(){
 						break;
 					case 2:
 						printf("2");
-						//transferirDinero(cvuDestino, monto);
+						//transferirDinero(cvuOrigen,cvuDestino, monto);
 						//tiene que restar a la cuenta que envia, sumar a la de destino y guardar la transferencia:
 						//destino: origen: monto:
 						break;
@@ -640,6 +640,7 @@ void listarMovsMenrA(long int x, float mnt) {
 	}
 	fclose(fp1);
 }
+
 void listarMovsEntre(long int x, float mnt1, float mnt2) {
 	FILE* fp1;
 	fp1 = fopen("movimientos.dat", "rb");
@@ -666,7 +667,39 @@ void listarMovsEntre(long int x, float mnt1, float mnt2) {
 	else {
 		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
 	}
-	fclose(fp1);
+fclose(fp1);
+}
+
+void transferirDinero(char origen, char destino, float mnt) { //esto es un quilombo por ahora
+	FILE* fp1, *fp2;
+	int encon = 0, modif = 0;
+	fp1 = fopen("Usuarios.dat", "rb");
+	fp2 = fopen("movimientos.dat", "ab");
+	if ((fp1 != NULL)&&(fp2 != NULL)) {
+		while (encon == 0) {
+			fread(&usuario, sizeof(usuario), 1, fp1);
+			if (strcmp(usuario.cvu, destino) == 0) {
+				usuario.saldo = usuario.saldo + mnt;//habria q hacer un control para saber si el loco tiene tanta plata como planea transferir
+				movimiento.cuilRecibe = usuario.cuil;
+				rewind(fp1);
+				while (modif == 0) {
+					fread(&usuario, sizeof(usuario), 1, fp1);
+					if (strcmp(usuario.cvu, origen) == 0) {
+						usuario.saldo = usuario.saldo - mnt;
+						movimiento.cuilEnvia = usuario.cuil;
+						modif = 1;
+					}
+				}
+				encon = 1; 
+			}
+		}
+		movimiento.monto = mnt;
+		movimiento.tipo = 1;
+		movimiento.iibb = (mnt-(mnt*0.0245));
+	}
+	else {
+		printf("\nError al abrir el archivo usuarios");
+	}
 }
 
 
