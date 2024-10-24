@@ -23,6 +23,8 @@ void listarMovsEntre(long int x, float mnt1, float mnt2);
 void listarMovimientos(long int x);
 int checkMonto(char origen, float monto);
 
+void cargarSaldo();
+
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
 struct fch{
@@ -197,7 +199,8 @@ void menuAdministrador(){
 		printf("1-Crear usuario\n");
 		printf("2-Mostrar datos de un usuario\n");
 		printf("3-Mostrar los datos de todos los usuarios\n");
-		printf("4-Modificar un usuario\n");
+		printf("4-Cargar Saldo\n-----> ");
+		//printf("5-Modificar un usuario\n");//
 
         scanf("%d", &usrChoice);
 
@@ -214,8 +217,9 @@ void menuAdministrador(){
 			case 3:
 				mostrarUsuarios(); 
 				break;
-			
-
+			case 4:
+				cargarSaldo();
+				break;
             default:
                 printf("Opción inválida\n");
         }
@@ -724,7 +728,7 @@ void listarMovsEntre(long int x, float mnt1, float mnt2) {
 fclose(fp1);
 }
 
-void transferirDinero(char origen, char destino, float mnt) { //esto es un quilombo por ahora
+/*void transferirDinero(char origen, char destino, float mnt) { //esto es un quilombo por ahora
 	FILE* fp1, *fp2;
 	int encon, modif;
 	float auxMonto;
@@ -796,9 +800,37 @@ int checkMonto(char origen, float monto) {
 		}
 	}
 	return(condition);
+}*/
+
+void cargarSaldo(){
+	FILE *f_usuarios=fopen("Usuarios.dat","r+b");
+	int parar=1, posicion=0;
+	float saldo;
+	long int cuil;
+	
+	if(f_usuarios!=NULL){
+		while(parar!=0){
+		printf("Ingrese el cuil de la persona que desea cargar saldo -----> ");
+		scanf("%ld",&cuil);
+		
+		if((posicion = checkCuil(cuil, f_usuarios)) != -1){
+			
+			printf("Ingrese la cantidad de dinero a cargar -----> ");
+			scanf("%f",&saldo);
+			usuario.saldo = saldo + usuario.saldo;
+			
+			fseek(f_usuarios,sizeof(struct struct_usuario)*posicion,SEEK_SET);
+			fwrite(&usuario,sizeof(struct struct_usuario),1,f_usuarios);
+				
+		} else printf("\nERROR: no se encontro el cuil ingresado\n");
+		
+		printf("Desea cargar otro saldo? (1 == si // 0 == no) ----->   ");
+		scanf("%i",&parar);
+	}
+	fclose(f_usuarios);
+	} else printf("\nERROR: no se pudo abrir el archivo");
+	
 }
-
-
 
 //menuListarMovimientosUsuarios();
 //1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
