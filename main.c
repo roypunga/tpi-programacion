@@ -21,6 +21,7 @@ void listarMovsMayrA(long int x, float mnt);
 void listarMovsMenrA(long int x, float mnt);
 void listarMovsEntre(long int x, float mnt1, float mnt2);
 void listarMovimientos(long int x);
+int checkMonto(char origen, float monto);
 
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
@@ -28,6 +29,11 @@ struct fch{
 	int dia, mes, anio;
 };
 
+struct struct_todaysDate {
+	int todayYear;
+	int todayMonth;
+	int todayDay;
+}todaysDate;
 
 struct struct_usuario{
 	char nombre[50];
@@ -72,7 +78,7 @@ int main() {
         printf("0-Salir\n");
 		printf("1-Usuario\n");
 		printf("2-Administrador\n");
-        scanf("%d", &usrChoice);
+        scanf("%d", &usrChoice);	
 
         switch(usrChoice) {
             case 0:
@@ -334,7 +340,7 @@ void cargarUsuario(){
 			do{
 				printf("\nIngrese el cuil ------> ");
 				validar = scanf("%ld", &usuario.cuil);
-				
+				//el problema lo tiene el q escrbiio esta pija de abajo, no entiendo una garcha asi que se manejan
 				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1){
 					printf("ERROR: cuil no valido %ld validar: %i",usuario.cuil,validar);
 					while (getchar() != '\n'); //reemplazo de fflush(stdin)
@@ -666,22 +672,21 @@ void listarMovsMenrA(long int x, float mnt) {
 	if (fp1 != NULL) {
 		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
 			if (((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) && (movimiento.tipo == 1)) {
-				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
-				//chequear la mascara de la fecha
+				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
 			}
 			else {
 				if (((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) && (movimiento.tipo == 2)) {
-					printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
-					//chequear la mascara de la fecha
+					printf("\nOperacion: Pago, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
 				}
 				else {
 					if ((movimiento.cuilEnvia == x) && (movimiento.monto < mnt)) {
-						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
-						//chequear la mascara de la fecha
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
+						//listo lo de las mascaras de fecha, dejo el comen este por si hice cagada
 					}
 				}
 			}
 		}
+		fclose(fp1);
 	}
 	else {
 		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
@@ -695,18 +700,19 @@ void listarMovsEntre(long int x, float mnt1, float mnt2) {
 	if (fp1 != NULL) {
 		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
 			if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2)&&(movimiento.tipo==1)) {
-				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
 				//chequear la mascara de la fecha
 			}
 			else {
 				if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2) && (movimiento.tipo == 2)) {
-					printf("\nOperacion: Pago, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+					printf("\nOperacion: Pago, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
 					//chequear la mascara de la fecha
 				}
 				else {
 					if (((movimiento.cuilEnvia == x) && (movimiento.monto >= mnt1)) && (movimiento.monto <= mnt2) && (movimiento.tipo == 3)) {
-						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %t, destino: %ld", movimiento.monto, movimiento.fecha, movimiento.cuilRecibe);
+						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %d-%d-%d, destino: %ld", movimiento.monto, movimiento.fecha.dia, movimiento.fecha.mes, movimiento.fecha.anio, movimiento.cuilRecibe);
 						//chequear la mascara de la fecha
+						//listo
 					}
 				}
 			}
@@ -720,34 +726,76 @@ fclose(fp1);
 
 void transferirDinero(char origen, char destino, float mnt) { //esto es un quilombo por ahora
 	FILE* fp1, *fp2;
-	int encon = 0, modif = 0;
-	fp1 = fopen("Usuarios.dat", "rb");
-	fp2 = fopen("movimientos.dat", "ab");
-	if ((fp1 != NULL)&&(fp2 != NULL)) {
-		while (encon == 0) {
-			fread(&usuario, sizeof(usuario), 1, fp1);
-			if (strcmp(usuario.cvu, destino) == 0) {
-				usuario.saldo = usuario.saldo + mnt;//habria q hacer un control para saber si el loco tiene tanta plata como planea transferir
-				movimiento.cuilRecibe = usuario.cuil;
-				rewind(fp1);
-				while (modif == 0) {
-					fread(&usuario, sizeof(usuario), 1, fp1);
-					if (strcmp(usuario.cvu, origen) == 0) {
-						usuario.saldo = usuario.saldo - mnt;
-						movimiento.cuilEnvia = usuario.cuil;
-						modif = 1;
-					}
-				}
-				encon = 1; 
-			}
-		}
-		movimiento.monto = mnt;
-		movimiento.tipo = 1;
-		movimiento.iibb = (mnt-(mnt*0.0245));
+	int encon, modif;
+	float auxMonto;
+	encon = 0;
+	modif = 0;
+	if (checkMonto(origen, mnt) == 1) {
+		printf("\nMontos insuficientes para la transaccion");
+		//deberian usar checkMonto antes de llamar a transferencia, pero como son medio cortitos se los perdono.
 	}
 	else {
-		printf("\nError al abrir el archivo usuarios");
+		fp1 = fopen("Usuarios.dat", "rb");
+		fp2 = fopen("movimientos.dat", "ab");
+		if ((fp1 != NULL) && (fp2 != NULL)) {
+			while (encon == 0||(fread(&usuario, sizeof(usuario), 1, fp1)==1)) {
+				if (strcmp(usuario.cvu, destino) == 0) {
+					usuario.saldo = usuario.saldo + mnt;
+					movimiento.cuilRecibe = usuario.cuil;
+					rewind(fp1);
+					while (modif == 0) {
+						fread(&usuario, sizeof(usuario), 1, fp1);
+						if (strcmp(usuario.cvu, origen) == 0) {
+							usuario.saldo = usuario.saldo - mnt;
+							movimiento.cuilEnvia = usuario.cuil;
+							modif = 1;
+						}
+					}
+					encon = 1;
+				}
+			}
+			movimiento.monto = mnt;
+			auxMonto = mnt;
+			movimiento.tipo = 1;
+			movimiento.fecha.anio = todaysDate.todayYear;
+			movimiento.fecha.mes = todaysDate.todayMonth;
+			movimiento.fecha.dia = todaysDate.todayDay;
+			if (((usuario.iva == 1) || (usuario.iva == 2)) || ((usuario.iva == 3) || (usuario.iva == 4))) {
+				movimiento.monto = mnt;
+				fwrite(&movimiento, sizeof(movimiento), 1, fp2);
+				movimiento.monto = (auxMonto * 0.05);
+				movimiento.tipo = 4;
+				fwrite(&movimiento, sizeof(movimiento), 1, fp2);
+			}
+			else {
+				movimiento.iibb = mnt;
+				fwrite(&movimiento, sizeof(movimiento), 1, fp2);
+			}
+		}
+		else {
+			printf("\nError al abrir el archivo usuarios");
+		}
 	}
+}
+int checkMonto(char origen, float monto) {
+	FILE* pUsuarios;
+	int found, condition;
+	found = 0;
+	condition = 1;
+	pUsuarios = fopen("Usuarios.dat", "rb");
+	rewind(pUsuarios);
+	while (fread(&usuario, sizeof(usuario), 1, pUsuarios) == 1||found==0) {
+		if (strcmp(usuario.cvu, origen) == 0) {
+			found = 1;
+			if (usuario.saldo >= monto) {
+				condition = 0;
+			}
+			else {
+				condition = 1;
+			}
+		}
+	}
+	return(condition);
 }
 
 
