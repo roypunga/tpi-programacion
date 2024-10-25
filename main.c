@@ -25,7 +25,6 @@ int checkMonto(char origen, float monto);
 
 void cargarSaldo();
 int iniciarSesion();
-int crearCuenta();
 
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
@@ -46,7 +45,7 @@ struct struct_todaysDate {
 struct struct_usuario{
 	char nombre[50];
     long int cuil, celular;
-    char email[30], alias[30], cvu[23];
+    char email[30], alias[30], cvu[23], contrasenia[10];
     int iva;
     float saldo;
 }usuario;
@@ -94,12 +93,12 @@ int main() {
                 break;
             case 1:
                 menu = iniciarSesion();
-                if(menu == 1) menuUsuario();
-				else if (menu == 2) menuAdministrador();
-				else printf("No se pudo inciar sesion\n");
+                if(menu != -1 && menu != -2) menuUsuario(menu);
+				else if (menu == -2) menuAdministrador();
+				else if (menu == -1)("No se pudo inciar sesion\n");
                 break;
             case 2:
-                crearCuenta();
+                cargarUsuario();
                 break;
             default:
                 printf("Opcion Invalida\n");
@@ -107,26 +106,14 @@ int main() {
     } while(usrChoice != 0);
 }
 
-void menuUsuario(){
+void menuUsuario(int posUsuario){
 
-	long int usrCuil;
-	int posicionUsuario;
+	int posicionUsuario = posUsuario;
 
-	printf("\nIngrese su cuil(-1 para volver): ");
-
-	principio:
-
-	scanf("%ld", &usrCuil);
-
-	if(usrCuil == -1){
-		return;
-	}
 
 	FILE *file_usuarios;
 
 	if((file_usuarios = fopen("Usuarios.dat", "r+b")) != NULL){
-
-		if((posicionUsuario = checkCuil(usrCuil, file_usuarios)) != -1){
 			
 			rewind(file_usuarios);
 			fseek(file_usuarios, sizeof(usuario)*(posicionUsuario), SEEK_SET);
@@ -179,11 +166,6 @@ void menuUsuario(){
 						printf("Opcion Invalida\n");
 				}
    		 	} while(usrChoice != 0);
-		}
-		else{
-			printf("\nNo se encontro el cuil, ingrese nuevamente: ");
-			goto principio;
-		}
 
 	}
 	else{
@@ -350,10 +332,14 @@ void cargarUsuario(){
 				validar = scanf("%ld", &usuario.cuil);
 				//el problema lo tiene el q escrbiio esta pija de abajo, no entiendo una garcha asi que se manejan
 				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1){
-					printf("ERROR: cuil no valido %ld validar: %i",usuario.cuil,validar);
-					while (getchar() != '\n'); //reemplazo de fflush(stdin)
+					printf("ERROR: el cuil no es valido\n"); //reemplazo de fflush(stdin)
 				}
 			} while (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1);
+			
+			
+			printf("Ingrese una contrasenia de no mas de 9 caracteres -----> ");
+			scanf("%s",&usuario.contrasenia);
+			while (getchar() != '\n');
 			
 
 			printf("\nIngrese el mail ------> ");
@@ -393,6 +379,7 @@ void cargarUsuario(){
 			fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
 			
 			do{
+				printf("El usuario se cargo exitosamente, YA PUEDE INICIAR SESION\n");
 				printf("\nDesea cargar otro usuario? (1 == si // 0 == no) ----->  ");
 				validar = scanf("%d", &usrChoice);
 				if(validar != 1 ||  usrChoice != 1 && usrChoice != 0){
@@ -461,7 +448,7 @@ void mostrarUsuarios(){
 		printf("\n----------DATOS USUARIOS----------\n\n");
 		fread(&usuario,sizeof(struct struct_usuario),1,f);
 		while(!feof(f)){
-			printf("\nUsuario: %s\nCuil: %ld\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n",usuario.nombre, usuario.cuil, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			printf("\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
 			fread(&usuario,sizeof(struct struct_usuario),1,f);
 		}
 		printf("\n--------------------------------------------------\n");
@@ -819,11 +806,14 @@ void cargarSaldo(){
 		
 		if((posicion = checkCuil(cuil, f_usuarios)) != -1){
 			
+			fseek(f_usuarios,sizeof(struct struct_usuario)*posicion,SEEK_SET);
+			fread(&usuario,sizeof(struct struct_usuario),1,f_usuarios);
+			fseek(f_usuarios,sizeof(struct struct_usuario)*posicion,SEEK_SET);
+			
 			printf("Ingrese la cantidad de dinero a cargar -----> ");
 			scanf("%f",&saldo);
 			usuario.saldo = saldo + usuario.saldo;
 			
-			fseek(f_usuarios,sizeof(struct struct_usuario)*posicion,SEEK_SET);
 			fwrite(&usuario,sizeof(struct struct_usuario),1,f_usuarios);
 				
 		} else printf("\nERROR: no se encontro el cuil ingresado\n");
@@ -838,78 +828,55 @@ void cargarSaldo(){
 
 int iniciarSesion(){
 	
-	FILE *f_cuenta = fopen("cuentas.dat","rb");
-	char usuario[50], contrasenia[10];
-	int encontrado = 0, encontrado1 = 0;
-	
-	
+	FILE *f_cuenta = fopen("Usuarios.dat","rb");
+	char contrasenia[10];
+	long int cuil;
+	int posUsuario;
 		
-		//le pedimos el usuario
-		printf("Ingrese su usuario -----> ");
-		scanf("%s",&usuario);
-		while (getchar() != '\n');
+		//le pedimos el cuil
+		printf("Ingrese su cuil (admin = 0000)-----> ");
+		scanf("%ld",&cuil);
 		
 		//bloque de admin, es decir, si el usuario ingresado es "admin"
-		if(strcmp(usuario,"admin") == 0){
-			
+		if(cuil == 0000){
+
 			//le pedimos la contraseña del administrador que es 1234
 			printf("Ingrese la contrasenia para ingresar como administrador (1234) -----> ");
 			scanf("%s",&contrasenia);
 			while (getchar() != '\n');
 			
 				if(strcmp(contrasenia,"1234") == 0){
-					return 2;
+					return -2;
 				} else {
 					printf("Contrasenia incorrecta");
 					return -1;
 				}
-		}else if(f_cuenta != NULL){
-		 	//buscammos el usuario en el archivo "cuentas.dat"
-			fread(&usuarioYContra,sizeof(struct struct_usuarioYContra),1,f_cuenta);
-			while(!feof(f_cuenta) && encontrado != 1){
-				if(strcmp(usuario,usuarioYContra.usuario) == 0){
-					encontrado = 1;
-				} else fread(&usuarioYContra,sizeof(struct struct_usuarioYContra),1,f_cuenta);
+		} else if(f_cuenta != NULL && (posUsuario = checkCuil(cuil, f_cuenta)) != -1){
+
+		 	printf("Ingrese su contrasenia -----> ");
+			scanf("%s",&contrasenia);
+			while (getchar() != '\n');
+		 	
+		 	rewind(f_cuenta);
+			fread(&usuario,sizeof(struct struct_usuario),1,f_cuenta);
+			while(!feof(f_cuenta)){
+				if(strcmp(contrasenia, usuario.contrasenia) == 0){
+					return posUsuario;
+				} else fread(&usuario,sizeof(struct struct_usuario),1,f_cuenta);
 			} 
-			if(encontrado == 1){
-				//el usuario fue encontrado, le pedimos la contraseña 
-				printf("Ingrese su contrasenia -----> ");
-				scanf("%s",&contrasenia);
-				while (getchar() != '\n');
-				
-				if(strcmp(contrasenia, usuarioYContra.contrasenia) == 0){
-                    fclose(f_cuenta);
-                    return 1;  // Usuario común
-                } else {
-                    printf("Contrasenia incorrecta\n");
-                    fclose(f_cuenta);
-                    return -1;
-                }
+                printf("Contrasenia incorrecta\n");
+                fclose(f_cuenta);
+                return -1;
+                
             } else {
                 printf("El usuario ingresado no existe\n");
                 fclose(f_cuenta);
                 return -1;
-            }	
-		} 
+            }
 		return -1;
-	} 	
+} 	
 	
-int crearCuenta(){
-	FILE *f_cuenta=fopen("cuentas.dat","a+b");
-	if(f_cuenta != NULL){
-		printf("Ingrese un nombre de usuario -----> ");
-		scanf("%s",usuarioYContra.usuario);
-		while (getchar() != '\n');
-		
-		printf("Ingrese una contrasenia de hasta 9 caracteres -----> ");
-		scanf("%s",usuarioYContra.contrasenia);
-		while (getchar() != '\n');
-		
-		fwrite(&usuarioYContra, sizeof(struct struct_usuarioYContra),1,f_cuenta);
-		fclose(f_cuenta);
-	} else printf("\nERROR: no se pudo abrir el archivo\n");
-	printf("\nSu cuenta se creo exitosamente, YA PUEDE INICIAR SESION\n");
-} 
+
 //menuListarMovimientosUsuarios();
 //1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 
