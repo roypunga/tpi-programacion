@@ -322,7 +322,7 @@ void cargarUsuario(){
 
 		do{
 
-			//generarCvu(usuario.cvu, file_usuarios);
+			generarCvu(usuario.cvu, file_usuarios);
 
 			printf("\nIngrese el nombre -----> ");
 			getchar();
