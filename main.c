@@ -25,6 +25,7 @@ int checkMonto(char origen, float monto);
 
 void cargarSaldo();
 int iniciarSesion();
+void olvidarContra();
 
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
@@ -85,6 +86,7 @@ int main() {
         printf("0-Salir\n");
 		printf("1-Iniciar Sesion\n");
 		printf("2-Crear Nuevo Usuario\n");
+		printf("3-Me olvide mi contrasenia\n");
         scanf("%d", &usrChoice);	
 
         switch(usrChoice) {
@@ -100,6 +102,9 @@ int main() {
             case 2:
                 cargarUsuario();
                 break;
+            case 3:
+            	olvidarContra();
+            	break;
             default:
                 printf("Opcion Invalida\n");
         }
@@ -317,7 +322,7 @@ void cargarUsuario(){
 
 		do{
 
-			generarCvu(usuario.cvu, file_usuarios);
+			//generarCvu(usuario.cvu, file_usuarios);
 
 			printf("\nIngrese el nombre -----> ");
 			getchar();
@@ -876,6 +881,35 @@ int iniciarSesion(){
 		return -1;
 } 	
 	
+void olvidarContra(){
+	FILE *f = fopen("Usuarios.dat","rb"), *f_txt = fopen("olvidar.txt","wb");
+	long int cuil;
+	int pos, validar=0;
+	
+	do{
+		printf("\nIngrese su cuil ------> ");
+		validar = scanf("%ld", &cuil);
+		if (validar != 1){
+				printf("ERROR: el cuil no es valido\n");
+				while (getchar() != '\n');
+		}
+	} while (validar != 1);
+	
+	if(f!=NULL && f_txt != NULL){
+		if((pos = checkCuil(cuil,f)) != -1){
+
+			fseek(f, sizeof(struct struct_usuario)*pos, SEEK_SET);
+			fread(&usuario, sizeof(struct struct_usuario), 1, f);
+			fseek(f, sizeof(struct struct_usuario)*pos, SEEK_SET);
+			
+			fprintf(f_txt,"La contrasenia de la cuenta con el cuil: %ld. Es: %s",usuario.cuil,usuario.contrasenia);
+			printf("Archivo txt generado exitosamente\n");
+			fclose(f);
+			fclose(f_txt);
+			
+		} else printf("ERROR: el cuil no existe en nuestra base de datos\n");
+	} else printf("ERROR: no se pudo abrir el archivo\n");
+}
 
 //menuListarMovimientosUsuarios();
 //1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
