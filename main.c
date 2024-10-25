@@ -348,7 +348,6 @@ void cargarUsuario(){
 			
 
 			printf("\nIngrese el mail ------> ");
-			getchar();
 			fgets(usuario.email, 30, stdin);
 			usuario.email[strcspn(usuario.email, "\n")] = '\0';
 			
@@ -845,7 +844,7 @@ int iniciarSesion(){
 		//bloque de admin, es decir, si el usuario ingresado es "admin"
 		if(cuil == 0000){
 
-			//le pedimos la contraseña del administrador que es 1234
+			//le pedimos la contraseï¿½a del administrador que es 1234
 			printf("Ingrese la contrasenia para ingresar como administrador (1234) -----> ");
 			scanf("%s",&contrasenia);
 			while (getchar() != '\n');
