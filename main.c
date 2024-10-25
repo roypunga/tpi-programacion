@@ -842,7 +842,7 @@ int iniciarSesion(){
 	char usuario[50], contrasenia[10];
 	int encontrado = 0, encontrado1 = 0;
 	
-	if(f_cuenta != NULL){
+	
 		
 		//le pedimos el usuario
 		printf("Ingrese su usuario -----> ");
@@ -858,14 +858,12 @@ int iniciarSesion(){
 			while (getchar() != '\n');
 			
 				if(strcmp(contrasenia,"1234") == 0){
-					fclose(f_cuenta);
 					return 2;
 				} else {
 					printf("Contrasenia incorrecta");
-					fclose(f_cuenta);
 					return -1;
 				}
-		}else{
+		}else if(f_cuenta != NULL){
 		 	//buscammos el usuario en el archivo "cuentas.dat"
 			fread(&usuarioYContra,sizeof(struct struct_usuarioYContra),1,f_cuenta);
 			while(!feof(f_cuenta) && encontrado != 1){
@@ -893,8 +891,8 @@ int iniciarSesion(){
                 return -1;
             }	
 		} 
-	} 
-}	
+		return -1;
+	} 	
 	
 int crearCuenta(){
 	FILE *f_cuenta=fopen("cuentas.dat","a+b");
