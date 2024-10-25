@@ -24,8 +24,14 @@ void listarMovimientos(long int x);
 int checkMonto(char origen, float monto);
 
 void cargarSaldo();
+int iniciarSesion();
+int crearCuenta();
 
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
+
+struct struct_usuarioYContra{
+	char usuario[50], contrasenia[10];
+}usuarioYContra;
 
 struct fch{
 	int dia, mes, anio;
@@ -71,15 +77,15 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
 void menuUsuario();
 
-int usrChoice;
+int usrChoice, menu;
 int main() {    
-
+	
 	printf("Bienvenido a PagarMercado! A que menu desea acceder?\n");
 
 	do {
         printf("0-Salir\n");
-		printf("1-Usuario\n");
-		printf("2-Administrador\n");
+		printf("1-Iniciar Sesion\n");
+		printf("2-Crear Nuevo Usuario\n");
         scanf("%d", &usrChoice);	
 
         switch(usrChoice) {
@@ -87,13 +93,16 @@ int main() {
                 printf("Saliendo...\n");
                 break;
             case 1:
-                menuUsuario();
+                menu = iniciarSesion();
+                if(menu == 1) menuUsuario();
+				else if (menu == 2) menuAdministrador();
+				else printf("No se pudo inciar sesion\n");
                 break;
             case 2:
-                menuAdministrador();
+                crearCuenta();
                 break;
             default:
-                printf("Opción inválida\n");
+                printf("Opcion Invalida\n");
         }
     } while(usrChoice != 0);
 }
@@ -133,8 +142,8 @@ void menuUsuario(){
 				printf("2. Transferir dinero\n");
 				printf("3. Listar movimientos\n");
 				printf("4. Pagar\n");
-				printf("5. Listar pagos");
-				printf("5. Mostrar mis datos\n");
+				printf("5. Listar pagos\n");
+				printf("6. Mostrar mis datos\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -167,7 +176,7 @@ void menuUsuario(){
 						//mostrarUnUsuario(usuario.cuil); 
 						break;
 					default:
-						printf("Opción inválida\n");
+						printf("Opcion Invalida\n");
 				}
    		 	} while(usrChoice != 0);
 		}
@@ -184,15 +193,12 @@ void menuUsuario(){
 }
 
 void menuAdministrador(){
-	printf("\nIngrese la pass de administrador(le puse 123 por ahora): ");
-	scanf("%d", &usrChoice);
 
 	char cvu[23];
 
 	long int usrCuil;
 
-	if(usrChoice == 123){
-		printf("\nBienvenido administrador! Que desea hacer?");
+		printf("\nBienvenido administrador! Que desea hacer?\n");
 
 		do {
         printf("0-Salir\n");
@@ -224,8 +230,6 @@ void menuAdministrador(){
                 printf("Opción inválida\n");
         }
     } while(usrChoice != 0);
-
-	}
 
 }
 
@@ -832,6 +836,82 @@ void cargarSaldo(){
 	
 }
 
+int iniciarSesion(){
+	
+	FILE *f_cuenta = fopen("cuentas.dat","rb");
+	char usuario[50], contrasenia[10];
+	int encontrado = 0, encontrado1 = 0;
+	
+	if(f_cuenta != NULL){
+		
+		//le pedimos el usuario
+		printf("Ingrese su usuario -----> ");
+		scanf("%s",&usuario);
+		while (getchar() != '\n');
+		
+		//bloque de admin, es decir, si el usuario ingresado es "admin"
+		if(strcmp(usuario,"admin") == 0){
+			
+			//le pedimos la contrase�a del administrador que es 1234
+			printf("Ingrese la contrasenia para ingresar como administrador (1234) -----> ");
+			scanf("%s",&contrasenia);
+			while (getchar() != '\n');
+			
+				if(strcmp(contrasenia,"1234") == 0){
+					fclose(f_cuenta);
+					return 2;
+				} else {
+					printf("Contrasenia incorrecta");
+					fclose(f_cuenta);
+					return -1;
+				}
+		}else{
+		 	//buscammos el usuario en el archivo "cuentas.dat"
+			fread(&usuarioYContra,sizeof(struct struct_usuarioYContra),1,f_cuenta);
+			while(!feof(f_cuenta) && encontrado != 1){
+				if(strcmp(usuario,usuarioYContra.usuario) == 0){
+					encontrado = 1;
+				} else fread(&usuarioYContra,sizeof(struct struct_usuarioYContra),1,f_cuenta);
+			} 
+			if(encontrado == 1){
+				//el usuario fue encontrado, le pedimos la contrase�a 
+				printf("Ingrese su contrasenia -----> ");
+				scanf("%s",&contrasenia);
+				while (getchar() != '\n');
+				
+				if(strcmp(contrasenia, usuarioYContra.contrasenia) == 0){
+                    fclose(f_cuenta);
+                    return 1;  // Usuario com�n
+                } else {
+                    printf("Contrasenia incorrecta\n");
+                    fclose(f_cuenta);
+                    return -1;
+                }
+            } else {
+                printf("El usuario ingresado no existe\n");
+                fclose(f_cuenta);
+                return -1;
+            }	
+		} 
+	} 
+}	
+	
+int crearCuenta(){
+	FILE *f_cuenta=fopen("cuentas.dat","a+b");
+	if(f_cuenta != NULL){
+		printf("Ingrese un nombre de usuario -----> ");
+		scanf("%s",usuarioYContra.usuario);
+		while (getchar() != '\n');
+		
+		printf("Ingrese una contrasenia de hasta 9 caracteres -----> ");
+		scanf("%s",usuarioYContra.contrasenia);
+		while (getchar() != '\n');
+		
+		fwrite(&usuarioYContra, sizeof(struct struct_usuarioYContra),1,f_cuenta);
+		fclose(f_cuenta);
+	} else printf("\nERROR: no se pudo abrir el archivo\n");
+	printf("\nSu cuenta se creo exitosamente, YA PUEDE INICIAR SESION\n");
+} 
 //menuListarMovimientosUsuarios();
 //1-todos 2-segun tipo > 1-2-3-  3-segun fecha > entre x y y 4-por monto > 1-mayores a 2-menores a
 
