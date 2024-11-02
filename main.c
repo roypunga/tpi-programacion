@@ -29,6 +29,7 @@ void cargarSaldo();
 int iniciarSesion();
 void olvidarContra();
 void obtenerFechaActual();
+void saldoBajo();
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 
 
@@ -185,7 +186,8 @@ void menuAdministrador(){
 		printf("1-Crear usuario\n");
 		printf("2-Mostrar datos de un usuario\n");
 		printf("3-Mostrar los datos de todos los usuarios\n");
-		printf("4-Cargar Saldo\n-----> ");
+		printf("4-Cargar Saldo\n");
+		printf("5-Mostrar usuarios con saldo bajo\n-----> ");
 		//printf("5-Modificar un usuario\n");//
 
         scanf("%d", &usrChoice);
@@ -198,13 +200,16 @@ void menuAdministrador(){
 				//cargarUsuario();
 				break;
 			case 2:
-				//mostraruno
+				//mostraruno();
 				break;
 			case 3:
 				mostrarUsuarios(); 
 				break;
 			case 4:
 				cargarSaldo();
+				break;
+			case 5:
+				saldoBajo();
 				break;
             default:
                 printf("Opción inválida\n");
@@ -642,6 +647,27 @@ void obtenerFechaActual(){
 
 
 //---------------------------------------- MENU Y FUNCIONES DE LISTAR ----------------------------------------
+void saldoBajo(){
+    FILE *f_usuario = fopen("Usuarios.dat", "rb");
+    float saldo;
+
+    if(f_usuario != NULL){
+        printf("Listar usuarios con el saldo menor a: -----> ");
+        scanf("%f",&saldo);
+
+        fread(&usuario, sizeof(struct struct_usuario), 1, f_usuario);
+        printf("\n");
+        while(!feof(f_usuario)){
+            if(usuario.saldo < saldo){
+                printf("El usuario: %s con el cuil: %ld, tiene un saldo de: $%.2f\n", usuario.nombre, usuario.cuil, usuario.saldo);
+            }
+            fread(&usuario, sizeof(struct struct_usuario), 1, f_usuario);
+        }
+        printf("\n");
+        fclose(f_usuario);
+    } else printf("ERROR: No se pudo abrir el archivo\n");
+}
+
 /*void menuListarMovimientosUsuarios(long int x){
 	float monto1=0.0, monto2=0.0;
 	int opc, usrChoiceSeTip, cnt=0, cntG=0;
