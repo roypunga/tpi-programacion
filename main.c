@@ -18,6 +18,8 @@ void menuListarMovimientosUsuarios(char *);
 void listarSoloPagos(char*);
 void listarSoloTrans(char*);
 void listarSoloIngr(char*);
+void listarEntrFecha(char*);
+void listarSoloUnaFecha(char*);
 void listarMovsMayrA(char*);
 void listarMovsMenrA(char*);
 void listarMovsEntre(char*);
@@ -531,7 +533,7 @@ void transferirDinero(char* origen) {
 }
 
 void cargarSaldo(){
-	FILE *f_usuarios=fopen("Usuarios.dat","r+b");
+	FILE *f_usuarios=fopen("Usuarios.dat","r+b"), *pMovimientos=fopen("Movimientos.dat","ab");
 	int parar=1, posicion=0;
 	float saldo;
 	long int cuil;
@@ -550,8 +552,20 @@ void cargarSaldo(){
 			printf("Ingrese la cantidad de dinero a cargar -----> ");
 			scanf("%f",&saldo);
 			usuario.saldo = saldo + usuario.saldo;
+
+			movimiento.anio = fecha.anio;
+			movimiento.mes = fecha.mes;
+			movimiento.dia = fecha.dia;
+			movimiento.tipo = 3;
+			movimiento.iibb = 0;
+			strcpy(movimiento.cvuDestino, usuario.cvu);
+			strcpy(movimiento.cvuOrigen, "0");
+			movimiento.monto = saldo;
 			
 			fwrite(&usuario,sizeof(struct struct_usuario),1,f_usuarios);
+			
+			fwrite(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+
 				
 		} else printf("\nERROR: no se encontro el cuil ingresado\n");
 		
@@ -559,6 +573,7 @@ void cargarSaldo(){
 		scanf("%i",&parar);
 	}
 	fclose(f_usuarios);
+	fclose(pMovimientos);
 	} else printf("\nERROR: no se pudo abrir el archivo");
 	
 }
@@ -730,11 +745,11 @@ void menuListarMovimientosUsuarios(char *origen){
 				scanf("%d", &usrChoiceSeTip);
 					switch (usrChoiceSeTip){
 						case 1:
-							//listarEntrFecha(fecha 1, fecha 2, CvuOrigen);
+							listarEntrFecha(CvuOrigen);
 							cnt=1;
 						break;
 						case 2:
-							//listarSoloIngr(fecha 1,CvuOrigen);
+							listarSoloUnaFecha(CvuOrigen);
 							cnt=1;
 						break;
 					default:
@@ -778,44 +793,48 @@ void menuListarMovimientosUsuarios(char *origen){
 	}
 }
 
-void listarMovimientos (char *Origen){
-	FILE *fp1;
-	int cont=0;
+void listarMovimientos(char* Origen) {
+	FILE* fp1;
+	int cont = 0;
 	char OrigenTransfe[23];
 
 	strcpy(OrigenTransfe, Origen);
 
 
-	fp1=fopen("movimientos.dat", "rb");
-	if(fp1!=NULL){
+	fp1 = fopen("movimientos.dat", "rb");
+	if (fp1 != NULL) {
 		rewind(fp1);
 		printf("\nUsuario tiene este cvu: %s", Origen);
-		while( fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1 ){
-			if(((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0) || (strcmp(movimiento.cvuDestino, OrigenTransfe) == 0))&&(movimiento.tipo >=1 && movimiento.tipo <=3)){
+		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
+			if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0) || (strcmp(movimiento.cvuDestino, OrigenTransfe) == 0))) {
 				if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
-					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					cont++;
 				}
-				else
-					if ((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) {
-						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d -%d -%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+				else {
+					if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
+						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						cont++;
 					}
-					else{
-						if(movimiento.tipo == 2){
-							printf("\nOperacion: pago, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
-							}
-						else{
+					else {
+						if (movimiento.tipo == 2) {
+							printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+							cont++;
+						}
+						else {
 							if (movimiento.tipo == 3) {
-								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d -%d -%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
-							}
+								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								cont++;
 							}
 						}
-				cont++;
+					}
+				}
 			}
 		}
 		printf("\nHay un total de: %d", cont);
 		fclose(fp1);
 	}
-	else{
+	else {
 		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
 	}
 }
@@ -832,11 +851,11 @@ void listarSoloTrans(char *Origen){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
 			if( ((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0))&&(movimiento.tipo==1) ){
-				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 			else
 				if ((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) {
-					printf("\nOperacion: transferencia, monto: $%.2f, fecha: %d -%d -%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
 				}
 		}
 		fclose(fp1);
@@ -857,8 +876,8 @@ void listarSoloIngr(char *Origen){
 	if(fp1!=NULL){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
-			if( (strcmp(OrigenTransfe, Origen) == 0) && (movimiento.tipo==3) ){
-				printf("\nOperacion: Ingreso, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+			if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) {
+				printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
 			}
 		}
 		fclose(fp1);
@@ -878,14 +897,129 @@ void listarSoloPagos (char *Origen){
 	if(fp1!=NULL){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
-			if((strcmp(OrigenTransfe, Origen) == 0) && (movimiento.tipo==2)){
-				printf("\nOperacion: Pago, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+			if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) {
+				printf("\nOperacion: pago, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 		}
 		fclose(fp1);
 	}
 	else{
 		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+}
+
+void listarEntrFecha(char* Origen) {
+	FILE* pMovimientos = fopen("Movimientos.dat", "rb");
+	int diaMenor, diaMayor, mesMenor, mesMaayor, anioMenor, anioMayor, fechaValida;
+	char cvuOrigen[23];
+
+	strcpy(cvuOrigen, Origen);
+
+	printf("\nIngrese la fecha menor de listado (dd mm aaaa): ");
+	scanf("%d %d %d", &diaMenor, &mesMenor, &anioMenor);
+
+	printf("\nIngrese la fecha mayor de listado (dd mm aaaa): ");
+	scanf("%d %d %d", &diaMayor, &mesMaayor, &anioMayor);
+
+	if (pMovimientos == NULL) {
+
+		printf("\nERROR DE APERTURA DE ARCHIVO MOVIMIENTOS");
+
+	}
+	else {
+
+		fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+
+		while (!feof(pMovimientos)) {
+
+			fechaValida = 0;
+
+			if ((movimiento.anio > anioMenor ||
+				(movimiento.anio == anioMenor && movimiento.mes > mesMenor) ||
+				(movimiento.anio == anioMenor && movimiento.mes == mesMenor && movimiento.dia >= diaMenor))
+				&&
+				(movimiento.anio < anioMayor ||
+					(movimiento.anio == anioMayor && movimiento.mes < mesMaayor) ||
+					(movimiento.anio == anioMayor && movimiento.mes == mesMaayor && movimiento.dia <= diaMayor))) {
+				fechaValida = 1;
+			}
+
+			if (((strcmp(cvuOrigen, movimiento.cvuOrigen) == 0) || (strcmp(cvuOrigen, movimiento.cvuDestino) == 0)) && fechaValida == 1) {
+
+				if (((strcmp(movimiento.cvuOrigen, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
+					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				}
+				else {
+					if (((strcmp(movimiento.cvuDestino, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
+						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+					}
+					else {
+						if (movimiento.tipo == 2) {
+							printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+						}
+						else {
+							if (movimiento.tipo == 3) {
+								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+
+							}
+						}
+					}
+				}
+			}
+			fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+		}
+	}
+}
+
+void listarSoloUnaFecha(char* Origen) {
+	FILE* pMovimientos = fopen("Movimientos.dat", "rb");
+	char cvuOrigen[23];
+	int dia, mes, anio, fechaValida = 0;
+
+	strcpy(cvuOrigen, Origen);
+
+	printf("\nINgrese la fecha para buscar todas las operaciones en ese dia (dd mm aaaa): ");
+	scanf("%d %d %d", &dia, &mes, &anio);
+
+	if (pMovimientos == NULL) {
+		printf("\nERROR DE APERTURA DE ARCHIVO DE MOVIMIENTOS");
+	}
+	else {
+		
+		fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+
+		while (!feof(pMovimientos)) {
+
+			fechaValida = 0;
+
+			if ((movimiento.anio == anio) && (movimiento.mes == mes) && (movimiento.dia == dia)) {
+				fechaValida = 1;
+			}
+
+			if (((strcmp(cvuOrigen, movimiento.cvuOrigen) == 0) || (strcmp(cvuOrigen, movimiento.cvuDestino) == 0)) && fechaValida == 1) {
+
+				if (((strcmp(movimiento.cvuOrigen, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
+					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				}
+				else {
+					if (((strcmp(movimiento.cvuDestino, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
+						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+					}
+					else {
+						if (movimiento.tipo == 2) {
+							printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+						}
+						else {
+							if (movimiento.tipo == 3) {
+								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+
+							}
+						}
+					}
+				}
+			}
+			fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+		}
 	}
 }
 
@@ -900,24 +1034,29 @@ void listarMovsMayrA (char *Origen){
 	scanf("%f", &monto);
 
 	fp1=fopen("movimientos.dat", "rb");
-	if(fp1!=NULL){
+	if (fp1 != NULL) {
 		rewind(fp1);
-		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
-			if (((strcmp(Origen, OrigenTranfe) == 0) && (movimiento.monto >= monto)) && (movimiento.tipo == 1)) {
-				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
+			if ((((strcmp(movimiento.cvuOrigen, OrigenTranfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto > monto){
+				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 			else {
-				if (((strcmp(Origen, OrigenTranfe) == 0) && (movimiento.monto >= monto)) && (movimiento.tipo == 2)) {
-					printf("\nOperacion: Pago, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				if ((((strcmp(movimiento.cvuDestino, OrigenTranfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto > monto) {
+					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 				}
 				else {
-					if (((strcmp(Origen, OrigenTranfe) == 0) && (movimiento.monto >= monto)) && (movimiento.tipo == 3)) {
-						printf("\nOperacion: Ingreso, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					if ((((strcmp(movimiento.cvuOrigen, OrigenTranfe) == 0)) && (movimiento.tipo == 2)) && movimiento.monto > monto) {
+						printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino, movimiento.cvuDestino);
+					}
+					else {
+						if ((((strcmp(movimiento.cvuDestino, OrigenTranfe) == 0)) && (movimiento.tipo == 3)) && movimiento.monto > monto) {
+							printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+						}
 					}
 				}
 			}
+			fclose(fp1);
 		}
-		fclose(fp1);
 	}
 	else{
 		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
@@ -938,16 +1077,21 @@ void listarMovsMenrA(char *Origen) {
 	if (fp1 != NULL) {
 		rewind(fp1);
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
-			if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto < monto)) && (movimiento.tipo == 1)) {
-				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto <= monto) {
+				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 			else {
-				if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto < monto)) && (movimiento.tipo == 2)) {
-					printf("\nOperacion: Pago, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto <= monto) {
+					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 				}
 				else {
-					if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto < monto)) && (movimiento.tipo == 3)) {
-						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) && movimiento.monto <= monto) {
+						printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino, movimiento.cvuDestino);
+					}
+					else {
+						if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) && movimiento.monto <= monto) {
+							printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+						}
 					}
 				}
 			}
@@ -975,16 +1119,21 @@ void listarMovsEntre(char *Origen) {
 	if (fp1 != NULL) {
 		rewind(fp1);
 		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
-			if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto >= MontoMenor)) && (movimiento.monto <= MontoMayor) && (movimiento.tipo == 1)) {
-				printf("\nOperacion: Transferencia, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
+				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 			else {
-				if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto >= MontoMenor)) && (movimiento.monto <= MontoMayor) && (movimiento.tipo == 2)) {
-					printf("\nOperacion: Pago, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
+					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 				}
 				else {
-					if (((strcmp(Origen, OrigenTransfe) == 0) && (movimiento.monto >= MontoMenor)) && (movimiento.monto <= MontoMayor) && (movimiento.tipo == 3)) {
-						printf("\nOperacion: ingreso, monto: $%.2f, fecha: %d -%d -%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
+						printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino, movimiento.cvuDestino);
+					}
+					else {
+						if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
+							printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+						}
 					}
 				}
 			}
@@ -1004,13 +1153,13 @@ void listarMovsEntre(char *Origen) {
 
 
 2. Movipmientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
-rango de fechas específico.
+rango de fechas específico.X
 
 3. Movimientos por tipo: Permitir al usuario ver solo los movimientos de un tipo específico (ingresos,
-transferencias, pagos).
+transferencias, pagos).X
 
 4. Movimientos por monto: Listar todos los movimientos que superen o estén por debajo de un
-monto específico.
+monto específico.X
 
 5. Transferencias recibidas: Mostrar todas las transferencias que un usuario ha recibido, incluyendo
 detalles del remitente.
@@ -1018,13 +1167,13 @@ detalles del remitente.
 6. Transferencias realizadas: Listar todas las transferencias que un usuario ha realizado, incluyendo
 detalles del destinatario.
 
-7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros.
+7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros. X
 
 8. Movimientos con retención de IIBB: Filtrar y listar los movimientos que han tenido retención de
 Ingresos Brutos.
 
 9. Usuarios con saldo bajo: Identificar y listar usuarios cuyo saldo esté por debajo de un umbral
-específico.
+específico. X
 
 10. Actividad de usuario: Proporcionar un resumen de la actividad de un usuario, incluyendo el
 número total de movimientos, total ingresado, total transferido y total pagado
