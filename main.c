@@ -32,6 +32,8 @@ void olvidarContra();
 void obtenerFechaActual();
 void saldoBajo();
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
+void obtenerDatosDestino(char*);
+void obtenerDatosEmisor(char*);
 
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
@@ -670,6 +672,49 @@ void obtenerFechaActual(){
     strcpy(fecha.dia_semana, dias_semana[tiempo_local.tm_wday]);
 }
 
+void obtenerDatosDestino(char *CVU){
+	FILE* pUsuarios = fopen("Usuarios.dat", "rb");
+	char objetivo[23];
+	int encontro = 0;
+
+	strcpy(objetivo, CVU);
+	if (pUsuarios == NULL) {
+		printf("\nERROR DE OBTENCION DE DATOS");
+	}
+	else {
+		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		while (!feof(pUsuarios) && encontro == 0) {
+			if (strcmp(usuario.cvu, objetivo) == 0) {
+				printf("\nDatos del destinatario: nombre: %s, alias: %s, cuil: %li", usuario.nombre, usuario.alias, usuario.cuil);
+				encontro = 1;
+			}
+			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		}
+	}
+}
+
+void obtenerDatosEmisor(char* CVU) {
+	FILE* pUsuarios = fopen("Usuarios.dat", "rb");
+	char objetivo[23];
+	int encontro = 0;
+
+	strcpy(objetivo, CVU);
+	if (pUsuarios == NULL) {
+		printf("\nERROR DE OBTENCION DE DATOS");
+	}
+	else {
+		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		while (!feof(pUsuarios) && encontro == 0) {
+			if (strcmp(usuario.cvu, objetivo) == 0) {
+				printf("\nDatos del emisor: nombre: %s, alias: %s, cuil: %li", usuario.nombre, usuario.alias, usuario.cuil);
+				encontro = 1;
+			}
+			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		}
+	}
+}
+
+
 
 
 //---------------------------------------- MENU Y FUNCIONES DE LISTAR ----------------------------------------
@@ -808,22 +853,24 @@ void listarMovimientos(char* Origen) {
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
 			if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0) || (strcmp(movimiento.cvuDestino, OrigenTransfe) == 0))) {
 				if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
-					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					printf("\n\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					obtenerDatosDestino(movimiento.cvuDestino);
 					cont++;
 				}
 				else {
 					if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
-						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						printf("\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						obtenerDatosEmisor(movimiento.cvuOrigen);
 						cont++;
 					}
 					else {
 						if (movimiento.tipo == 2) {
-							printf("\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+							printf("\n\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 							cont++;
 						}
 						else {
 							if (movimiento.tipo == 3) {
-								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 								cont++;
 							}
 						}
@@ -851,11 +898,13 @@ void listarSoloTrans(char *Origen){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
 			if( ((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0))&&(movimiento.tipo==1) ){
-				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				printf("\n\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				obtenerDatosDestino(movimiento.cvuDestino);
 			}
 			else
 				if ((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) {
-					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+					printf("\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+					obtenerDatosEmisor(movimiento.cvuDestino);
 				}
 		}
 		fclose(fp1);
