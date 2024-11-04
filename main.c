@@ -3,14 +3,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define CODIGO_SEGURIDAD1 "6"
+#define CODIGO_SEGURIDAD1 "3"
 #define CODIGO_SEGURIDAD2 "8"
 #define CODIGO_PROVEEDOR "6666666"
 
 //---------------------------------------- PROTOTIPO DE FUNCIONES --------------------------------------
 int checkCuil(long int cuilABuscar, FILE *file_usuarios);
 void menuAdministrador();
-void menuUsuario();
+void menuUsuario(int);
 void generarCvu(char *cadena, FILE *file_usuarios);
 void cargarUsuario();
 void mostrarUsuarios();
@@ -34,8 +34,8 @@ void saldoBajo();
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 void obtenerDatosDestino(char*);
 void obtenerDatosEmisor(char*);
-void mostrarUnUsuario(char* Origen);
-
+void mostrarUnUsuario(long int);
+void hacerPago(char* cvuUsuario);
 
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
@@ -98,7 +98,7 @@ int main() {
                 menu = iniciarSesion();
                 if(menu != -1 && menu != -2) menuUsuario(menu);
 				else if (menu == -2) menuAdministrador();
-				else if (menu == -1)("No se pudo inciar sesion\n");
+				else if (menu == -1)printf("No se pudo inciar sesion\n");
                 break;
             case 2:
                 cargarUsuario();
@@ -157,13 +157,13 @@ void menuUsuario(int posUsuario){
 						break;
 					case 4:
 						printf("4");
-						//pagar(); //esta funcion tiene que crear/aniadir pagos.dat
+						hacerPago(usuarioMenu.cvu);
 						break;
 					case 5:
 						listarSoloPagos(usuarioMenu.cvu);
 						break;
 					case 6:
-						mostrarUnUsuario(usuario.cvu); 
+						mostrarUnUsuario(usuarioMenu.cuil); 
 						break;
 					default:
 						printf("Opcion Invalida\n");
@@ -204,7 +204,9 @@ void menuAdministrador(){
 				cargarUsuario();
 				break;
 			case 2:
-				mostrarUnUsuario(usuario.cvu); //esto  no te da todos los datos, omite cuil, contrasenia, 
+				printf("\nIngrese el cuil del usuario que quiere mostrar: ");
+				scanf("%ld", &usrCuil);
+				mostrarUnUsuario(usrCuil); //esto  no te da todos los datos, omite cuil, contrasenia, 
 				break;
 			case 3:
 				mostrarUsuarios(); 
@@ -479,7 +481,7 @@ void transferirDinero(char* origen) {
 	}
 	else {
 		fp1 = fopen("Usuarios.dat", "r+b");
-		fp2 = fopen("movimientos.dat", "a+b");
+		fp2 = fopen("Movimientos.dat", "a+b");
 		if ((fp1 != NULL) && (fp2 != NULL)) {
 			fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 			while (encontrado1 != 1 && !feof(fp1)) {
@@ -536,6 +538,72 @@ void transferirDinero(char* origen) {
 	}
 }
 
+
+void hacerPago(char* cvuUsuario) {
+	
+    FILE* fpUsuario, * fpMovimiento;
+    int encontrado = 0;
+    float monto;
+    char empresa[23];
+
+
+    printf("Ingrese el nombre de la empresa a pagar -----> ");
+    scanf("%s", empresa);
+    if (strlen(empresa) >= 23) {
+        printf("El nombre de la empresa es muy largo. Intente nuevamente.");
+        return;
+    }
+
+    do {
+        printf("Ingrese el monto a pagar -----> ");
+        scanf("%f", &monto);
+        if (monto <= 0) {
+            printf("Monto no vÃ¡lido. Ingrese otro\n");
+        }
+    } while (monto <= 0);
+
+    if (checkMonto(cvuUsuario, monto) == 1) {
+        printf("Saldo insuficiente para realizar el pago.\n");
+        return;
+    }
+
+    fpUsuario = fopen("Usuarios.dat", "r+b");
+    fpMovimiento = fopen("Movimientos.dat", "a+b");
+
+    if (fpUsuario != NULL && fpMovimiento != NULL) {
+        while (fread(&usuario, sizeof(struct struct_usuario), 1, fpUsuario) == 1 && !encontrado) {
+            if (strcmp(usuario.cvu, cvuUsuario) == 0) {
+                encontrado = 1;
+                usuario.saldo -= monto;
+
+                fseek(fpUsuario, -sizeof(struct struct_usuario), SEEK_CUR);
+                fwrite(&usuario, sizeof(struct struct_usuario), 1, fpUsuario);
+
+                movimiento.tipo = 2;
+                movimiento.monto = monto;
+                movimiento.dia = fecha.dia;
+                movimiento.mes = fecha.mes;
+                movimiento.anio = fecha.anio;
+                strcpy(movimiento.cvuOrigen, usuario.cvu);
+                strcpy(movimiento.cvuDestino, empresa);
+
+                fwrite(&movimiento, sizeof(struct struct_movimiento), 1, fpMovimiento);
+                printf("Pago realizado exitosamente.\n");
+            }
+        }
+
+        // Cerrar archivos
+        fclose(fpUsuario);
+        fclose(fpMovimiento);
+
+        if (!encontrado) {
+            printf("Usuario no encontrado.\n");
+        }
+    } else {
+        printf("Error al abrir archivos.\n");
+    }
+}
+
 void cargarSaldo(){
 	FILE *f_usuarios=fopen("Usuarios.dat","r+b"), *pMovimientos=fopen("Movimientos.dat","ab");
 	int parar=1, posicion=0;
@@ -548,6 +616,7 @@ void cargarSaldo(){
 		scanf("%ld",&cuil);
 		
 		if((posicion = checkCuil(cuil, f_usuarios)) != -1){
+
 			
 			fseek(f_usuarios,sizeof(struct struct_usuario)*posicion,SEEK_SET);
 			fread(&usuario,sizeof(struct struct_usuario),1,f_usuarios);
@@ -670,7 +739,7 @@ void obtenerFechaActual(){
     fecha.mes = tiempo_local.tm_mon + 1;
     fecha.anio = tiempo_local.tm_year + 1900;
 
-    const char *dias_semana[] = {"Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"};
+    const char *dias_semana[] = {"Domingo", "Lunes", "Martes", "Miï¿½rcoles", "Jueves", "Viernes", "Sï¿½bado"};
     strcpy(fecha.dia_semana, dias_semana[tiempo_local.tm_wday]);
 }
 
@@ -848,7 +917,7 @@ void listarMovimientos(char* Origen) {
 	strcpy(OrigenTransfe, Origen);
 
 
-	fp1 = fopen("movimientos.dat", "rb");
+	fp1 = fopen("Movimientos.dat", "rb");
 	if (fp1 != NULL) {
 		rewind(fp1);
 		printf("\nUsuario tiene este cvu: %s", Origen);
@@ -895,7 +964,7 @@ void listarSoloTrans(char *Origen){
 
 	strcpy(OrigenTransfe, Origen);
 
-	fp1=fopen("movimientos.dat", "rb");
+	fp1=fopen("Movimientos.dat", "rb");
 	if(fp1!=NULL){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
@@ -922,7 +991,7 @@ void listarSoloIngr(char *Origen){
 
 	strcpy(OrigenTransfe, Origen);
 
-	fp1=fopen("movimientos.dat", "rb");
+	fp1=fopen("Movimientos.dat", "rb");
 	
 	if(fp1!=NULL){
 		rewind(fp1);
@@ -944,11 +1013,11 @@ void listarSoloPagos (char *Origen){
 
 	strcpy(OrigenTransfe, Origen);
 
-	fp1=fopen("movimientos.dat", "rb");
+	fp1=fopen("Movimientos.dat", "rb");
 	if(fp1!=NULL){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(movimiento),1,fp1)==1){
-			if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) {
+			if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) {
 				printf("\nOperacion: pago, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 			}
 		}
@@ -1088,7 +1157,7 @@ void listarMovsMayrA (char *Origen){
 	printf("\nIngrese monto minimo a partir del cual listar: $");
 	scanf("%f", &monto);
 
-	fp1=fopen("movimientos.dat", "rb");
+	fp1=fopen("Movimientos.dat", "rb");
 	if (fp1 != NULL) {
 		rewind(fp1);
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
@@ -1130,7 +1199,7 @@ void listarMovsMenrA(char *Origen) {
 	printf("\nIngrese el monto maximo de listado, solo se mostraran movimiento con montos menores a: $");
 	scanf("%f", &monto);
 
-	fp1 = fopen("movimientos.dat", "rb");
+	fp1 = fopen("Movimientos.dat", "rb");
 	if (fp1 != NULL) {
 		rewind(fp1);
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
@@ -1169,12 +1238,12 @@ void listarMovsEntre(char *Origen) {
 
 	strcpy(OrigenTransfe, Origen);
 
-	printf("Ingrese valor mínimo y máximo de listado: $");
+	printf("Ingrese valor mï¿½nimo y mï¿½ximo de listado: $");
 	scanf("%f", &MontoMenor);
 	printf(" y $");
 	scanf("%f", &MontoMayor);
 
-	fp1 = fopen("movimientos.dat", "rb");
+	fp1 = fopen("Movimientos.dat", "rb");
 	if (fp1 != NULL) {
 		rewind(fp1);
 		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
@@ -1206,26 +1275,30 @@ void listarMovsEntre(char *Origen) {
 	}
 }
 
-void mostrarUnUsuario(char* Origen) {
-	FILE* pUsuarios = fopen("Movimientos.dat", "rb");
-	char CVU[23];
-	int fin = 0;
-
-	strcpy(CVU, Origen);
+void mostrarUnUsuario(long int cuil) {
+	FILE* pUsuarios = fopen("Usuarios.dat", "rb");
+	int posicion;
 
 	if (pUsuarios == NULL) {
 		printf("ERROR DE APERTURA");
 	}
 	else {
-		fin = 0;
-		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
-		while (!feof(pUsuarios) && fin == 0) {
-			if (strcmp(usuario.cvu, CVU) == 0) {
-				printf("\nCVU: %s\nNombre: %s\nTelefono: %lld\nAlias: %s\nEmail: %s\nSaldo: %.2f", usuario.nombre, usuario.celular, usuario.alias, usuario.email, usuario.saldo);
-				fin = 1;
-			}
-			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+	
+		if((posicion = checkCuil(cuil, pUsuarios)) == -1){
+			
+			printf("\nNo se encontro ese CUIL");
+
 		}
+		else {
+			
+			fseek(pUsuarios, (sizeof(struct struct_usuario) * posicion), SEEK_SET);
+			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+
+			printf("\n\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+
+
+		}
+
 	}
 }
 
