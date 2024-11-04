@@ -34,6 +34,8 @@ void saldoBajo();
 int checkCvu(char *cvuABuscar, FILE *file_usuarios);
 void obtenerDatosDestino(char*);
 void obtenerDatosEmisor(char*);
+void mostrarUnUsuario(char* Origen);
+
 
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
@@ -73,6 +75,8 @@ struct struct_movimiento{
 
 
 //---------------------------------------- MAIN Y FUNCIONES DE LOS MENUS ----------------------------------------
+
+
 int usrChoice, menu;
 int main() {    
 	
@@ -126,7 +130,7 @@ void menuUsuario(int posUsuario){
 			printf("\nBienvenido %s! Que operacion desea realizar?\n", usuario.nombre);
 
 			do {
-				printf("\n0. Volver\n");
+				printf("\n\n0. Volver\n");
 				printf("1. Ingresar dinero\n");
 				printf("2. Transferir dinero\n");
 				printf("3. Listar movimientos\n");
@@ -141,13 +145,11 @@ void menuUsuario(int posUsuario){
 						break;
 					case 1:
 						printf("1");
-						//ingresarDinero();
+						//ingresarDinero(); esto lo hace el admin en teoria, ya existe la funcion en el menu de administrador. Vean si la eliminan de aca o la habilitan
 						break;
 					case 2:
 						printf("2");
 						transferirDinero(usuarioMenu.cvu);
-						//tiene que restar a la cuenta que envia, sumar a la de destino y guardar la transferencia:
-						//destino: origen: monto:
 						break;
 					case 3:
 						printf("3");
@@ -158,10 +160,10 @@ void menuUsuario(int posUsuario){
 						//pagar(); //esta funcion tiene que crear/aniadir pagos.dat
 						break;
 					case 5:
-						// listarPagos();
+						listarSoloPagos(usuarioMenu.cvu);
 						break;
 					case 6:
-						//mostrarUnUsuario(usuario.cuil); 
+						mostrarUnUsuario(usuario.cvu); 
 						break;
 					default:
 						printf("Opcion Invalida\n");
@@ -202,7 +204,7 @@ void menuAdministrador(){
 				cargarUsuario();
 				break;
 			case 2:
-				//mostraruno();
+				mostrarUnUsuario(usuario.cvu); //esto  no te da todos los datos, omite cuil, contrasenia, 
 				break;
 			case 3:
 				mostrarUsuarios(); 
@@ -221,8 +223,8 @@ void menuAdministrador(){
 }
 
 
-
 //---------------------------------------- FUNCIONES PARA VERIFICAR (CUIL, CVU, SALDO, ETC.) ----------------------------------------
+
 
 int checkCuil(long int cuilABuscar, FILE *file_usuarios){
 
@@ -291,8 +293,9 @@ int checkMonto(char* origen, float monto) {
 }
 
 
-
 //-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
+
+
 void cargarUsuario() {
 
 	int usrChoice, validar;
@@ -531,7 +534,6 @@ void transferirDinero(char* origen) {
 			printf("\nError de apertura de archivos");
 		}
 	}
-	return 0;
 }
 
 void cargarSaldo(){
@@ -715,9 +717,9 @@ void obtenerDatosEmisor(char* CVU) {
 }
 
 
-
-
 //---------------------------------------- MENU Y FUNCIONES DE LISTAR ----------------------------------------
+
+
 void saldoBajo(){
     FILE *f_usuario = fopen("Usuarios.dat", "rb");
     float saldo;
@@ -904,7 +906,7 @@ void listarSoloTrans(char *Origen){
 			else
 				if ((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) {
 					printf("\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
-					obtenerDatosEmisor(movimiento.cvuDestino);
+					obtenerDatosEmisor(movimiento.cvuOrigen);
 				}
 		}
 		fclose(fp1);
@@ -997,10 +999,12 @@ void listarEntrFecha(char* Origen) {
 
 				if (((strcmp(movimiento.cvuOrigen, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
 					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					obtenerDatosDestino(movimiento.cvuDestino);
 				}
 				else {
 					if (((strcmp(movimiento.cvuDestino, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
 						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						obtenerDatosEmisor(movimiento.cvuOrigen);
 					}
 					else {
 						if (movimiento.tipo == 2) {
@@ -1049,10 +1053,12 @@ void listarSoloUnaFecha(char* Origen) {
 
 				if (((strcmp(movimiento.cvuOrigen, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
 					printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					obtenerDatosDestino(movimiento.cvuDestino);
 				}
 				else {
 					if (((strcmp(movimiento.cvuDestino, cvuOrigen) == 0)) && (movimiento.tipo == 1)) {
 						printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						obtenerDatosEmisor(movimiento.cvuOrigen);
 					}
 					else {
 						if (movimiento.tipo == 2) {
@@ -1088,10 +1094,12 @@ void listarMovsMayrA (char *Origen){
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
 			if ((((strcmp(movimiento.cvuOrigen, OrigenTranfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto > monto){
 				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				obtenerDatosDestino(movimiento.cvuDestino);
 			}
 			else {
 				if ((((strcmp(movimiento.cvuDestino, OrigenTranfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto > monto) {
 					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+					obtenerDatosEmisor(movimiento.cvuOrigen);
 				}
 				else {
 					if ((((strcmp(movimiento.cvuOrigen, OrigenTranfe) == 0)) && (movimiento.tipo == 2)) && movimiento.monto > monto) {
@@ -1128,10 +1136,12 @@ void listarMovsMenrA(char *Origen) {
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
 			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto <= monto) {
 				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				obtenerDatosDestino(movimiento.cvuDestino);
 			}
 			else {
 				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && movimiento.monto <= monto) {
 					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+					obtenerDatosEmisor(movimiento.cvuOrigen);
 				}
 				else {
 					if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) && movimiento.monto <= monto) {
@@ -1170,10 +1180,12 @@ void listarMovsEntre(char *Origen) {
 		while (fread(&movimiento, sizeof(movimiento), 1, fp1) == 1) {
 			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
 				printf("\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				obtenerDatosDestino(movimiento.cvuDestino);
 			}
 			else {
 				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
 					printf("\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+					obtenerDatosDestino(movimiento.cvuOrigen);
 				}
 				else {
 					if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 2)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
@@ -1194,7 +1206,28 @@ void listarMovsEntre(char *Origen) {
 	}
 }
 
+void mostrarUnUsuario(char* Origen) {
+	FILE* pUsuarios = fopen("Movimientos.dat", "rb");
+	char CVU[23];
+	int fin = 0;
 
+	strcpy(CVU, Origen);
+
+	if (pUsuarios == NULL) {
+		printf("ERROR DE APERTURA");
+	}
+	else {
+		fin = 0;
+		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		while (!feof(pUsuarios) && fin == 0) {
+			if (strcmp(usuario.cvu, CVU) == 0) {
+				printf("\nCVU: %s\nNombre: %s\nTelefono: %lld\nAlias: %s\nEmail: %s\nSaldo: %.2f", usuario.nombre, usuario.celular, usuario.alias, usuario.email, usuario.saldo);
+				fin = 1;
+			}
+			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
+		}
+	}
+}
 
 
 //--------------------------------------------------------------------------------CONSIGNAS--------------------------------------------------------------------------------
@@ -1211,10 +1244,10 @@ transferencias, pagos).X
 monto específico.X
 
 5. Transferencias recibidas: Mostrar todas las transferencias que un usuario ha recibido, incluyendo
-detalles del remitente.
+detalles del remitente.X
 
 6. Transferencias realizadas: Listar todas las transferencias que un usuario ha realizado, incluyendo
-detalles del destinatario.
+detalles del destinatario.X
 
 7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros. X
 
