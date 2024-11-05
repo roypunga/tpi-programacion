@@ -36,6 +36,7 @@ void obtenerDatosDestino(char*);
 void obtenerDatosEmisor(char*);
 void mostrarUnUsuario(long int);
 void hacerPago(char* cvuUsuario);
+void listarMovimientosTXT(char* Origen);
 
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
@@ -137,6 +138,7 @@ void menuUsuario(int posUsuario){
 				printf("4. Pagar\n");
 				printf("5. Listar pagos\n");
 				printf("6. Mostrar mis datos\n");
+				printf("7. Crear archivo TXT con los movimientos\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -164,6 +166,9 @@ void menuUsuario(int posUsuario){
 						break;
 					case 6:
 						mostrarUnUsuario(usuarioMenu.cuil); 
+						break;
+					case 7:
+						listarMovimientosTXT(usuarioMenu.cvu);
 						break;
 					default:
 						printf("Opcion Invalida\n");
@@ -909,6 +914,61 @@ void menuListarMovimientosUsuarios(char *origen){
 	}
 }
 
+void listarMovimientosTXT(char* Origen) {
+	FILE* fp1;
+	int cont = 0;
+	char OrigenTransfe[23];
+	FILE* file_txt;
+
+	strcpy(OrigenTransfe, Origen);
+
+	file_txt = fopen("ListaDeMovimientos.txt", "w");
+	if(file_txt == NULL){
+		printf("ERRORERRORERRORERRORERROR");
+	}
+
+	fp1 = fopen("Movimientos.dat", "rb");
+	if (fp1 != NULL) {
+		rewind(fp1);
+		fprintf(file_txt, "RESUMEN DE LA CUENTA DE CVU %s", Origen);
+		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
+			if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0) || (strcmp(movimiento.cvuDestino, OrigenTransfe) == 0))) {
+				if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
+					fprintf(file_txt, "\n\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+					obtenerDatosDestino(movimiento.cvuDestino);
+					cont++;
+				}
+				else {
+					if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
+						fprintf(file_txt, "\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
+						obtenerDatosEmisor(movimiento.cvuOrigen);
+						cont++;
+					}
+					else {
+						if (movimiento.tipo == 2) {
+							fprintf(file_txt, "\n\nOperacion: pago, monto: $%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+							cont++;
+						}
+						else {
+							if (movimiento.tipo == 3) {
+								fprintf(file_txt, "\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								cont++;
+							}
+						}
+					}
+				}
+			}
+		}
+		fprintf(file_txt, "\nHay un total de: %d", cont);
+		printf("\nArchivo creado con exito");
+		fclose(fp1);
+	}
+	else {
+		printf("\nERROR AL ABRIR EL ARCHIVO MOVIMIENTOS");
+	}
+	fclose(file_txt);
+}
+
 void listarMovimientos(char* Origen) {
 	FILE* fp1;
 	int cont = 0;
@@ -920,7 +980,6 @@ void listarMovimientos(char* Origen) {
 	fp1 = fopen("Movimientos.dat", "rb");
 	if (fp1 != NULL) {
 		rewind(fp1);
-		printf("\nUsuario tiene este cvu: %s", Origen);
 		while (fread(&movimiento, sizeof(struct struct_movimiento), 1, fp1) == 1) {
 			if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0) || (strcmp(movimiento.cvuDestino, OrigenTransfe) == 0))) {
 				if (((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) {
