@@ -48,22 +48,16 @@ struct fecha_str {
     int dia;
     int mes;
     int anio;
-    char dia_semana[10];
 } fecha;
 
 struct struct_usuario{
 	char nombre[50];
-    long int cuil, celular;
+    long int cuil; 
+	double celular;
     char email[30], alias[30], cvu[23], contrasenia[10];
     int iva;
     float saldo;
 }usuario, usuarioMenu;
-
-struct struct_cuenta {
-    int tipo; //caja de ahorro cuenta corriente
-    char cvu[23];
-    long int cuil;
-}cuenta;
 
 struct struct_movimiento{
     int tipo; //ingreso transferencia o pago
@@ -178,10 +172,7 @@ void menuUsuario(int posUsuario){
    		 	} while(usrChoice != 0);
 
 	}
-	else{
-		printf("ERROR");
-	}
-
+	else printf("ERROR: no se pudo abrir el archivo\n");	
 }
 
 void menuAdministrador(){
@@ -199,7 +190,6 @@ void menuAdministrador(){
 		printf("3-Mostrar los datos de todos los usuarios\n");
 		printf("4-Cargar Saldo\n");
 		printf("5-Mostrar usuarios con saldo bajo\n-----> ");
-		//printf("5-Modificar un usuario\n");//
 
         scanf("%d", &usrChoice);
 
@@ -225,7 +215,7 @@ void menuAdministrador(){
 				saldoBajo();
 				break;
             default:
-                printf("Opción inválida\n");
+                printf("Opcion Invalida\n");
         }
     } while(usrChoice != 0);
 
@@ -250,7 +240,6 @@ int checkCuil(long int cuilABuscar, FILE *file_usuarios){
         if(usuario.cuil == cuilABuscar){
             encontro = 1;
         }
-
     }
 
     if(encontro == 1){
@@ -273,7 +262,6 @@ int checkCvu(char *cvuABuscar, FILE *file_usuarios){
         if(!strcmp(usuario.cvu, cvuABuscar)){
             encontro = 1;
         }
-
     }
 
     if(encontro == 1){
@@ -283,7 +271,7 @@ int checkCvu(char *cvuABuscar, FILE *file_usuarios){
 }
 
 int checkMonto(char* origen, float monto) {
-	FILE* pUsuarios;
+	FILE *pUsuarios;
 	int res = 1;
 	pUsuarios = fopen("Usuarios.dat", "rb");
 	if (pUsuarios != NULL) {
@@ -297,7 +285,7 @@ int checkMonto(char* origen, float monto) {
 			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
 		}
 		fclose(pUsuarios);
-	}
+	} else printf("ERROR: no se pudo abrir el archivo");
 	return res;
 }
 
@@ -308,36 +296,48 @@ int checkMonto(char* origen, float monto) {
 void cargarUsuario() {
 
 	int usrChoice, validar;
-	FILE* file_usuarios;
-
+	FILE *file_usuarios;
 
 	if ((file_usuarios = fopen("Usuarios.dat", "a+b")) != NULL) {
 
 		do {
 
 			generarCvu(usuario.cvu, file_usuarios);
-
-			printf("\nIngrese el nombre -----> ");
-			getchar();
-			fgets(usuario.nombre, 50, stdin);
-			usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0';
-
-
+			
+			do{
+				printf("\nIngrese el nombre -----> ");
+				getchar();
+				fgets(usuario.nombre, 50, stdin);
+				usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0';
+				
+				//control para que no se ingrese un nombre vacio (un enter)
+				if((strlen(usuario.nombre)) <= 0){
+					printf("ERROR: nombre no valido\n");
+				} 	
+			} while( (strlen(usuario.nombre)) <= 0 );
+			
 		denuevo:
 
 			do {
 				printf("\nIngrese el cuil ------> ");
 				validar = scanf("%ld", &usuario.cuil);
+				
 				if (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1) {
 					printf("ERROR: el cuil no es valido\n");
 					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
-			} while (validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1);
+			} while(validar != 1 || checkCuil(usuario.cuil, file_usuarios) != -1);
 
-
-			printf("Ingrese una contrasenia de no mas de 9 caracteres -----> ");
-			scanf("%s", &usuario.contrasenia);
-			while (getchar() != '\n');
+			do{
+				printf("Ingrese una contrasenia de no mas de 9 caracteres -----> ");
+				scanf("%s", &usuario.contrasenia);
+				while (getchar() != '\n');
+				
+				if((strlen(usuario.contrasenia)) <= 0 || (strlen(usuario.contrasenia)) >= 10){
+					printf("ERROR: contrasenia no valida\n");
+				}
+			} while( (strlen(usuario.contrasenia)) <= 0 || (strlen(usuario.contrasenia)) >= 10 );
+			
 
 
 			printf("\nIngrese el mail ------> ");
@@ -352,18 +352,20 @@ void cargarUsuario() {
 			do {
 				printf("\nIngrese el telefono ------> ");
 				validar = scanf("%ld", &usuario.celular);
+				
 				if (validar != 1) {
 					printf("ERROR: numero de celular no valido");
 					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
-			} while (validar != 1);
+			} while(validar != 1);
 
 
 			do {
 				printf("\nEste usuario paga iva?\n1 == monotributista\n2 == trabajador independiente\n3 == responsable inscripto\n4 == excento\n5 == no paga iva\n6 == no paga iva\n7 == no paga iva\n8 == no paga iva\n9 == no paga iva\n ----->  ");
 				validar = scanf("%d", &usuario.iva);
+				
 				if (validar != 1 || usuario.iva < 1 || usuario.iva > 9) {
-					printf("ERROR: no ingreso 1 o 0");
+					printf("ERROR: el numero ingresado no es una opcion\n");
 					while (getchar() != '\n'); //reemplazo de fflush(stdin);
 				}
 			} while (validar != 1 || usuario.iva < 1 || usuario.iva > 9);
@@ -379,8 +381,9 @@ void cargarUsuario() {
 				printf("El usuario se cargo exitosamente, YA PUEDE INICIAR SESION\n");
 				printf("\nDesea cargar otro usuario? (1 == si // 0 == no) ----->  ");
 				validar = scanf("%d", &usrChoice);
+				
 				if (validar != 1 || usrChoice != 1 && usrChoice != 0) {
-					printf("ERROR: no ingreso 1 o 0");
+					printf("ERROR: no ingreso 1 o 0\n");
 					while (getchar() != '\n'); //reemplazo de fflush(stdin)
 				}
 			} while (validar != 1 || usrChoice != 1 && usrChoice != 0);
@@ -390,9 +393,8 @@ void cargarUsuario() {
 		} while (usrChoice != 0);
 
 	}
-	else {
-		printf("\nError al abrir el archivo");
-	}
+	else printf("\nERROR: no se pudo abrir el archivo"); 
+	
 	fclose(file_usuarios);
 }
 
@@ -414,11 +416,10 @@ void generarCvu(char *cadena, FILE *file_usuarios){
 
                 fread(&usuario, sizeof(usuario), 1, file_usuarios);
 
-                for(i = 11, j = 0; i < 21; i++, j++){ //no sabia si esto iba a funcionar, reloco
+                for(i = 11, j = 0; i < 21; i++, j++){ 
 
                     charIdCvuUsuario[j] = usuario.cvu[i];
 					
- 
                 }
 				charIdCvuUsuario[j] = '\0';
 
@@ -449,11 +450,11 @@ void mostrarUsuarios(){
 		}
 		printf("\n--------------------------------------------------\n");
 		fclose(f);
-	}
+	} else printf("ERROR: no se pudo abrir el archivo");
 }
 
 void transferirDinero(char* origen) {
-	FILE* fp1, * fp2;
+	FILE *fp1, *fp2;
 	int encon, modif, encontrado1 = 0, posDestino = 0;
 	float monto;
 	char cvuOrigen[23], cvuDestino[23];
@@ -468,17 +469,21 @@ void transferirDinero(char* origen) {
 		scanf("%s", &cvuDestino);
 		posDestino = checkCvu(cvuDestino, fp1);
 		if (posDestino == -1) {
-			printf("Cvu no encontrado");
-		}
+			printf("ERROR: cvu no encontrado\n");
+			if((strcmp(cvuOrigen, cvuDestino)) == 0){
+				printf("ERROR: el cvu de origen es el mismo que el de destino\n");
+			}
+		} 
+		
 
-	} while (posDestino == -1);
+	} while (posDestino == -1 && (strcmp(cvuOrigen, cvuDestino)) == 0);
 	fclose(fp1);
 
 	do {
 		printf("Ingrese el dinero que desea transferir -----> ");
 		scanf("%f", &monto);
 		if (monto <= 0) {
-			printf("Monto no valido. Ingrese otro\n");
+			printf("ERROR: el monto ingresado es menor a 1 peso\n");
 		}
 	} while (monto <= 0);
 
@@ -493,19 +498,18 @@ void transferirDinero(char* origen) {
 			fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 			while (encontrado1 != 1 && !feof(fp1)) {
 				if (usuarioMenu.cuil == usuario.cuil) {
-					printf("saldo antes de descontar == %f\n", usuarioMenu.saldo);
+					
 					encontrado1 = 1;
 					usuarioMenu.saldo = usuarioMenu.saldo - monto;
 					usuario.saldo = usuarioMenu.saldo;
 					fseek(fp1, (sizeof(struct struct_usuario)) * (-1), SEEK_CUR);
 					fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
-					printf("despues del fwrite usuarioMenu == %f ----- usuario.saldo == %f ----- nombre == %s", usuarioMenu.saldo, usuario.saldo, usuario.nombre);
+					
 				}
 				else fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 			}
 
 			//leemos los datos del usuario destino
-
 			fseek(fp1, sizeof(struct struct_usuario) * posDestino, SEEK_SET);
 			fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 
@@ -517,6 +521,7 @@ void transferirDinero(char* origen) {
 			strcpy(movimiento.cvuOrigen, cvuOrigen);
 			strcpy(movimiento.cvuDestino, usuario.cvu);
 
+			//condiciones para el iibb
 			if (usuario.iva >= 5 && usuario.iva <= 9) {
 				movimiento.iibb = 0;
 				usuario.saldo = usuario.saldo + monto;
@@ -539,9 +544,7 @@ void transferirDinero(char* origen) {
 			fclose(fp1);
 			fclose(fp2);
 		}
-		else {
-			printf("\nError de apertura de archivos");
-		}
+		else printf("\nERROR: no se pudo abrir el archivo\n");
 	}
 }
 
@@ -556,7 +559,7 @@ void hacerPago(char* cvuUsuario) {
     printf("Ingrese el nombre de la empresa a pagar -----> ");
     scanf("%s", empresa);
     if (strlen(empresa) >= 23) {
-        printf("El nombre de la empresa es muy largo. Intente nuevamente.");
+        printf("ERROR: el nombre de la empresa es muy largo. Intente nuevamente.");
         return;
     }
 
@@ -564,7 +567,7 @@ void hacerPago(char* cvuUsuario) {
         printf("Ingrese el monto a pagar -----> ");
         scanf("%f", &monto);
         if (monto <= 0) {
-            printf("Monto no válido. Ingrese otro\n");
+            printf("ERROR: monto no valido. Ingrese otro\n");
         }
     } while (monto <= 0);
 
@@ -665,13 +668,13 @@ int iniciarSesion(){
 	int posUsuario;
 		
 		//le pedimos el cuil
-		printf("Ingrese su cuil (admin = 0000)-----> ");
+		printf("Ingrese su cuil (admin == 0)-----> ");
 		scanf("%ld",&cuil);
 		
 		//bloque de admin, es decir, si el usuario ingresado es "admin"
-		if(cuil == 0000){
+		if(cuil == 0){
 
-			//le pedimos la contrase�a del administrador que es 1234
+			//le pedimos la contraseniaa del administrador que es 1234
 			printf("Ingrese la contrasenia para ingresar como administrador (1234) -----> ");
 			scanf("%s",&contrasenia);
 			while (getchar() != '\n');
@@ -679,7 +682,7 @@ int iniciarSesion(){
 				if(strcmp(contrasenia,"1234") == 0){
 					return -2;
 				} else {
-					printf("Contrasenia incorrecta");
+					printf("Contrasenia incorrecta\n");
 					return -1;
 				}
 		} else if(f_cuenta != NULL && (posUsuario = checkCuil(cuil, f_cuenta)) != -1){
@@ -689,11 +692,11 @@ int iniciarSesion(){
 			while (getchar() != '\n');
 		 	
 		 	rewind(f_cuenta);
-			fread(&usuario,sizeof(struct struct_usuario),1,f_cuenta);
+			fread(&usuario, sizeof(struct struct_usuario), 1, f_cuenta);
 			while(!feof(f_cuenta)){
-				if(strcmp(contrasenia, usuario.contrasenia)==0){
+				if(strcmp(contrasenia, usuario.contrasenia) == 0){
 					return posUsuario;
-				} else fread(&usuario,sizeof(struct struct_usuario),1,f_cuenta);
+				} else fread(&usuario, sizeof(struct struct_usuario), 1, f_cuenta);
 			} 
                 printf("Contrasenia incorrecta\n");
                 fclose(f_cuenta);
@@ -702,7 +705,6 @@ int iniciarSesion(){
             } else {
                 printf("El usuario ingresado no existe\n");
                 fclose(f_cuenta);
-                return -1;
             }
 		return -1;
 } 	
@@ -744,9 +746,7 @@ void obtenerFechaActual(){
     fecha.dia = tiempo_local.tm_mday;
     fecha.mes = tiempo_local.tm_mon + 1;
     fecha.anio = tiempo_local.tm_year + 1900;
-
-    const char *dias_semana[] = {"Domingo", "Lunes", "Martes", "Mi�rcoles", "Jueves", "Viernes", "S�bado"};
-    strcpy(fecha.dia_semana, dias_semana[tiempo_local.tm_wday]);
+    
 }
 
 void obtenerDatosDestino(char *CVU){
@@ -849,6 +849,7 @@ void actividadUsuario(char* clienteCvu) {
 void saldoBajo(){
     FILE *f_usuario = fopen("Usuarios.dat", "rb");
     float saldo;
+    int encontro = 0;
 
     if(f_usuario != NULL){
         printf("Listar usuarios con el saldo menor a: -----> ");
@@ -858,13 +859,15 @@ void saldoBajo(){
         printf("\n");
         while(!feof(f_usuario)){
             if(usuario.saldo < saldo){
+            	encontro = 1;
                 printf("El usuario: %s con el cuil: %ld, tiene un saldo de: $%.2f\n", usuario.nombre, usuario.cuil, usuario.saldo);
             }
             fread(&usuario, sizeof(struct struct_usuario), 1, f_usuario);
         }
+        if(encontro = 0) printf("No hay usuario con saldo mas bajo que %i", saldo);
         printf("\n");
         fclose(f_usuario);
-    } else printf("ERROR: No se pudo abrir el archivo\n");
+    } else printf("ERROR: no se pudo abrir el archivo\n");
 }
 
 void menuListarMovimientosUsuarios(char *origen){
@@ -1418,33 +1421,4 @@ void mostrarUnUsuario(long int cuil) {
 }
 
 
-//--------------------------------------------------------------------------------CONSIGNAS--------------------------------------------------------------------------------
-/*1. Saldo de usuario: Permitir al usuario consultar su saldo actual en la cuenta. X
 
-
-2. Movipmientos por fecha: Filtrar y listar todos los movimientos realizados por un usuario en un
-rango de fechas específico.X
-
-3. Movimientos por tipo: Permitir al usuario ver solo los movimientos de un tipo específico (ingresos,
-transferencias, pagos).X
-
-4. Movimientos por monto: Listar todos los movimientos que superen o estén por debajo de un
-monto específico.X
-
-5. Transferencias recibidas: Mostrar todas las transferencias que un usuario ha recibido, incluyendo
-detalles del remitente.X
-
-6. Transferencias realizadas: Listar todas las transferencias que un usuario ha realizado, incluyendo
-detalles del destinatario.X
-
-7. Pagos realizados: Mostrar un listado de todos los pagos que un usuario ha realizado a terceros. X
-
-8. Movimientos con retención de IIBB: Filtrar y listar los movimientos que han tenido retención de
-Ingresos Brutos.
-
-9. Usuarios con saldo bajo: Identificar y listar usuarios cuyo saldo esté por debajo de un umbral
-específico. X
-
-10. Actividad de usuario: Proporcionar un resumen de la actividad de un usuario, incluyendo el
-número total de movimientos, total ingresado, total transferido y total pagado
-*/
