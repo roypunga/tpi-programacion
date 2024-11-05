@@ -615,7 +615,7 @@ void hacerPago(char* cvuUsuario) {
 
 void cargarSaldo(){
 	FILE *f_usuarios=fopen("Usuarios.dat","r+b"), *pMovimientos=fopen("Movimientos.dat","ab");
-	int parar=1, posicion=0;
+	int parar=1, posicion=0, validar;
 	float saldo;
 	long int cuil;
 	
@@ -651,8 +651,16 @@ void cargarSaldo(){
 				
 		} else printf("\nERROR: no se encontro el cuil ingresado\n");
 		
-		printf("Desea cargar otro saldo? (1 == si // 0 == no) ----->   ");
-		scanf("%i",&parar);
+			do {
+				printf("Desea cargar otro saldo? (1 == si // 0 == no) ----->   ");
+				validar = scanf("%i",&parar);
+				
+				if (validar != 1 || parar != 1 && parar != 0) {
+					printf("ERROR: no ingreso 1 o 0\n");
+					while (getchar() != '\n'); //reemplazo de fflush(stdin)
+				}
+			} while (validar != 1 || parar != 1 && parar != 0);
+
 	}
 	fclose(f_usuarios);
 	fclose(pMovimientos);
