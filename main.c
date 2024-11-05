@@ -53,7 +53,7 @@ struct fecha_str {
 struct struct_usuario{
 	char nombre[50];
     long int cuil; 
-	double celular;
+	unsigned long celular;
     char email[30], alias[30], cvu[23], contrasenia[10];
     int iva;
     float saldo;
@@ -351,7 +351,7 @@ void cargarUsuario() {
 
 			do {
 				printf("\nIngrese el telefono ------> ");
-				validar = scanf("%ld", &usuario.celular);
+				validar = scanf("%lu", &usuario.celular);
 				
 				if (validar != 1) {
 					printf("ERROR: numero de celular no valido");
@@ -445,7 +445,7 @@ void mostrarUsuarios(){
 		printf("\n----------DATOS USUARIOS----------\n\n");
 		fread(&usuario,sizeof(struct struct_usuario),1,f);
 		while(!feof(f)){
-			printf("\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			printf("\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %lu\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
 			fread(&usuario,sizeof(struct struct_usuario),1,f);
 		}
 		printf("\n--------------------------------------------------\n");
@@ -1411,7 +1411,7 @@ void mostrarUnUsuario(long int cuil) {
 			fseek(pUsuarios, (sizeof(struct struct_usuario) * posicion), SEEK_SET);
 			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
 
-			printf("\n\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %li\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
+			printf("\n\nUsuario: %s\nCuil: %ld\nContrasenia: %s\nCVU: %s\nCelular: %lu\nEmail: %s\nAlias: %s\nIVA: %i\nSaldo: %.2f\n\n",usuario.nombre, usuario.cuil, usuario.contrasenia, usuario.cvu, usuario.celular, usuario.email, usuario.alias, usuario.iva, usuario.saldo);
 
 
 		}
