@@ -459,7 +459,7 @@ void transferirDinero(char* origen) {
 	float monto;
 	char cvuOrigen[23], cvuDestino[23];
 
-	strcpy(cvuOrigen, origen);
+	//strcpy(cvuOrigen, origen);
 	encon = 0;
 	modif = 0;
 
@@ -470,13 +470,13 @@ void transferirDinero(char* origen) {
 		posDestino = checkCvu(cvuDestino, fp1);
 		if (posDestino == -1) {
 			printf("ERROR: cvu no encontrado\n");
-			if((strcmp(cvuOrigen, cvuDestino)) == 0){
+			if((strcmp(origen, cvuDestino)) == 0){
 				printf("ERROR: el cvu de origen es el mismo que el de destino\n");
 			}
 		} 
 		
 
-	} while (posDestino == -1 && (strcmp(cvuOrigen, cvuDestino)) == 0);
+	} while (posDestino == -1 && (strcmp(origen, cvuDestino)) == 0);
 	fclose(fp1);
 
 	do {
@@ -488,7 +488,7 @@ void transferirDinero(char* origen) {
 	} while (monto <= 0);
 
 
-	if ((checkMonto(cvuOrigen, monto)) == 1) {
+	if ((checkMonto(origen, monto)) == 1) {
 		printf("\nMontos insuficientes para la transaccion");
 	}
 	else {
@@ -505,12 +505,11 @@ void transferirDinero(char* origen) {
 					fseek(fp1, (sizeof(struct struct_usuario)) * (-1), SEEK_CUR);
 					fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
 					
-				}
-				else fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
+				} else fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 			}
 
 			//leemos los datos del usuario destino
-			fseek(fp1, sizeof(struct struct_usuario) * posDestino, SEEK_SET);
+			fseek(fp1, (sizeof(struct struct_usuario)) * (posDestino), SEEK_SET);
 			fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 
 			movimiento.tipo = 1;
@@ -518,14 +517,13 @@ void transferirDinero(char* origen) {
 			movimiento.dia = fecha.dia;
 			movimiento.mes = fecha.mes;
 			movimiento.anio = fecha.anio;
-			strcpy(movimiento.cvuOrigen, cvuOrigen);
+			strcpy(movimiento.cvuOrigen, origen);
 			strcpy(movimiento.cvuDestino, usuario.cvu);
 
 			//condiciones para el iibb
 			if (usuario.iva >= 5 && usuario.iva <= 9) {
 				movimiento.iibb = 0;
 				usuario.saldo = usuario.saldo + monto;
-
 			}
 			else {
 				movimiento.iibb = 1;
@@ -537,7 +535,7 @@ void transferirDinero(char* origen) {
 
 			//printeamos los datos
 			fwrite(&movimiento, sizeof(struct struct_movimiento), 1, fp2);
-			fseek(fp1, sizeof(struct struct_usuario) * posDestino, SEEK_SET);
+			fseek(fp1, (sizeof(struct struct_usuario)) * (posDestino), SEEK_SET);
 			fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
 
 			//cerramos los archivos
@@ -580,7 +578,8 @@ void hacerPago(char* cvuUsuario) {
     fpMovimiento = fopen("Movimientos.dat", "a+b");
 
     if (fpUsuario != NULL && fpMovimiento != NULL) {
-        while (fread(&usuario, sizeof(struct struct_usuario), 1, fpUsuario) == 1 && !encontrado) {
+    	fread(&usuario, sizeof(struct struct_usuario), 1, fpUsuario);
+        while ( !feof(fpUsuario) && !encontrado) {
             if (strcmp(usuario.cvu, cvuUsuario) == 0) {
                 encontrado = 1;
                 usuario.saldo -= monto;
@@ -598,8 +597,8 @@ void hacerPago(char* cvuUsuario) {
 
                 fwrite(&movimiento, sizeof(struct struct_movimiento), 1, fpMovimiento);
                 printf("Pago realizado exitosamente.\n");
-            }
-        }
+            } else fread(&usuario, sizeof(struct struct_usuario), 1, fpUsuario);
+        } 
 
         // Cerrar archivos
         fclose(fpUsuario);
@@ -684,7 +683,7 @@ int iniciarSesion(){
 
 			//le pedimos la contraseniaa del administrador que es 1234
 			printf("Ingrese la contrasenia para ingresar como administrador (1234) -----> ");
-			scanf("%s",&contrasenia);
+			scanf("%s", &contrasenia);
 			while (getchar() != '\n');
 			
 				if(strcmp(contrasenia,"1234") == 0){
@@ -696,13 +695,13 @@ int iniciarSesion(){
 		} else if(f_cuenta != NULL && (posUsuario = checkCuil(cuil, f_cuenta)) != -1){
 
 		 	printf("Ingrese su contrasenia -----> ");
-			scanf("%s",&contrasenia);
+			scanf("%s", &contrasenia);
 			while (getchar() != '\n');
 		 	
 		 	rewind(f_cuenta);
 			fread(&usuario, sizeof(struct struct_usuario), 1, f_cuenta);
 			while(!feof(f_cuenta)){
-				if(strcmp(contrasenia, usuario.contrasenia) == 0){
+				if((strcmp(contrasenia, usuario.contrasenia)) == 0){
 					return posUsuario;
 				} else fread(&usuario, sizeof(struct struct_usuario), 1, f_cuenta);
 			} 
