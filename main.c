@@ -42,6 +42,8 @@ void listarMovimientosTXT(char*);
 int nombreValido(char *);
 int checkAlias(char* , FILE*);
 
+void listarIIBB(char*);
+
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
 struct struct_usuarioYContra{
 	char usuario[50], contrasenia[10];
@@ -1452,5 +1454,34 @@ void mostrarUnUsuario(long int cuil) {
 	}
 }
 
+void listarIIBB(char *Origen){
+	FILE* pMovimientos = fopen("Movmientos.dat", "rb");
+	char CVU[23];
 
+	strcpy(CVU, Origen);
+
+	if (pMovimientos == NULL) {
+		printf("\nERROR DE APERTURA EN EL ARCHIVO DE MOVIMIENTOS");
+	}
+	else {
+		
+		fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+
+		while (!feof(pMovimientos)) {
+
+			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && (movimiento.iibb == 1)) {
+				printf("\n\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+				obtenerDatosDestino(movimiento.cvuDestino);
+			}
+			else
+				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) && (movimiento.tipo) == 1) {
+					printf("\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+					obtenerDatosEmisor(movimiento.cvuOrigen);
+				}
+			
+			fread(&movimiento, sizeof(struct struct_movimiento), 1, pMovimientos);
+		}
+
+	}
+}
 
