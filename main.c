@@ -40,6 +40,7 @@ void hacerPago(char* cvuUsuario);
 void actividadUsuario(char*);
 void listarMovimientosTXT(char*);
 int nombreValido(char *);
+int checkAlias(char* , FILE*);
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
 struct struct_usuarioYContra{
@@ -292,7 +293,6 @@ int checkMonto(char* origen, float monto) {
 }
 
 
-//-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
 int nombreValido(char *nombre){
 	int i;
     for(i = 0; i < strlen(nombre); i++) {
@@ -302,10 +302,12 @@ int nombreValido(char *nombre){
     }
     return 1; // Retorna 1 si todos los caracteres son letras
 }
+//-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
+
 
 void cargarUsuario() {
-
-	int usrChoice, validar;
+	char *dominios[] = {"@gmail.com", "@hotmail.com", "@yahoo.com", "@outlook.com", "@live.com", "@icloud.com"};
+	int usrChoice, validar, esValido = 0, i, lenEmail, lenDominio;
 	FILE *file_usuarios;
 
 	if ((file_usuarios = fopen("Usuarios.dat", "a+b")) != NULL) {
@@ -325,8 +327,6 @@ void cargarUsuario() {
 					printf("ERROR: nombre no valido\n");
 				} 	
 			} while( (strlen(usuario.nombre)) <= 0 || (nombreValido(usuario.nombre)) == 0);
-			
-		denuevo:
 
 			do {
 				printf("\nIngrese el cuil ------> ");
@@ -349,15 +349,31 @@ void cargarUsuario() {
 			} while( (strlen(usuario.contrasenia)) <= 0 || (strlen(usuario.contrasenia)) >= 10 );
 			
 
+			esValido = 0;
+			do {
+    			printf("\nIngrese el mail ------> ");
+    			fgets(usuario.email, 30, stdin);
+    			usuario.email[strcspn(usuario.email, "\n")] = '\0'; //Elimina el salto de línea
 
-			printf("\nIngrese el mail ------> ");
-			fgets(usuario.email, 30, stdin);
-			usuario.email[strcspn(usuario.email, "\n")] = '\0';
-
-
-			printf("\nIngrese el alias -----> ");
-			fgets(usuario.alias, 30, stdin);
-			usuario.alias[strcspn(usuario.alias, "\n")] = '\0';
+    			// Recorre los dominios permitidos y verifica si el correo termina con alguno
+    			for(i = 0; i < 6; i++) {
+        			lenDominio = strlen(dominios[i]);
+        			lenEmail = strlen(usuario.email);
+        			
+      			  if(lenEmail >= lenDominio && strcmp(usuario.email + lenEmail - lenDominio, dominios[i]) == 0 && (strcspn(usuario.email, "@")) > 0){
+           			esValido = 1;  // Cambia esValido a 1 si el dominio es válido
+            		break;         // Termina el bucle si se encuentra un dominio válido
+        			}
+    			}
+   				 if(esValido != 1) {
+        			printf("ERROR: correo no valido, ingrese un correo con un dominio permitido.\n");
+    			}  
+			} while (esValido != 1);
+			
+				
+				printf("\nIngrese el alias -----> ");
+				fgets(usuario.alias, 30, stdin);
+				usuario.alias[strcspn(usuario.alias, "\n")] = '\0';
 
 			do {
 				printf("\nIngrese el telefono ------> ");
@@ -379,7 +395,6 @@ void cargarUsuario() {
 					while (getchar() != '\n'); //reemplazo de fflush(stdin);
 				}
 			} while (validar != 1 || usuario.iva < 1 || usuario.iva > 9);
-
 
 			usuario.saldo = 0;
 
