@@ -294,6 +294,28 @@ int checkMonto(char* origen, float monto) {
 	return res;
 }
 
+int checkAlias(char* aliasABuscar, FILE* file_usuarios) {
+	int encontro = 0;
+	int contador = 0;
+	struct struct_usuario usuario;
+
+	rewind(file_usuarios);  // Asegura que el puntero esté al inicio del archivo
+
+	while (fread(&usuario, sizeof(usuario), 1, file_usuarios) == 1) {
+		contador++;
+		if (strcmp(usuario.alias, aliasABuscar) == 0) {
+			encontro = 1;
+			break;  // Alias encontrado, salimos del bucle
+		}
+	}
+
+	if (encontro == 1) {
+		return contador - 1;  // Devuelve la posición donde se encontró
+	}
+
+	return -1;  // No se encontró
+}
+
 
 int nombreValido(char *nombre){
 	int i;
@@ -372,10 +394,24 @@ void cargarUsuario() {
     			}  
 			} while (esValido != 1);
 			
-				
+			esValido = 0;
+
+			do {
 				printf("\nIngrese el alias -----> ");
 				fgets(usuario.alias, 30, stdin);
 				usuario.alias[strcspn(usuario.alias, "\n")] = '\0';
+
+				esValido = 0;
+
+
+				if (checkAlias(usuario.alias, file_usuarios) != -1) {
+					printf("ERROR: El alias ya existe.\n");
+
+				}
+				else esValido = 1;
+
+
+			} while (esValido != 1);
 
 			do {
 				printf("\nIngrese el telefono ------> ");
@@ -1469,12 +1505,12 @@ void listarIIBB(char *Origen){
 
 		while (!feof(pMovimientos)) {
 
-			if ((((strcmp(movimiento.cvuOrigen, OrigenTransfe) == 0)) && (movimiento.tipo == 1)) && (movimiento.iibb == 1)) {
+			if ((((strcmp(movimiento.cvuOrigen, CVU) == 0)) && (movimiento.tipo == 1)) && (movimiento.iibb == 1)) {
 				printf("\n\nOperacion: transferencia, monto: -$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
 				obtenerDatosDestino(movimiento.cvuDestino);
 			}
 			else
-				if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0) && (movimiento.tipo) == 1) && (movimiento.tipo) == 1) {
+				if ((((strcmp(movimiento.cvuDestino, CVU) == 0) && (movimiento.tipo) == 1) && (movimiento.tipo) == 1)) {
 					printf("\n\nOperacion: transferencia, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
 					obtenerDatosEmisor(movimiento.cvuOrigen);
 				}
