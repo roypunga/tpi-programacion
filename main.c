@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define CODIGO_SEGURIDAD1 "3"
 #define CODIGO_SEGURIDAD2 "8"
@@ -38,6 +39,7 @@ void mostrarUnUsuario(long int);
 void hacerPago(char* cvuUsuario);
 void actividadUsuario(char*);
 void listarMovimientosTXT(char*);
+int nombreValido(char *);
 
 void listarIIBB(char*);
 
@@ -293,7 +295,15 @@ int checkMonto(char* origen, float monto) {
 
 
 //-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
-
+int nombreValido(char *nombre){
+	int i;
+    for(i = 0; i < strlen(nombre); i++) {
+        if ((!isalpha(nombre[i])) && nombre[i] != ' ') {  // Verifica que cada carácter sea una letra
+            return 0;               // Retorna 0 si algún carácter no es letra
+        }
+    }
+    return 1; // Retorna 1 si todos los caracteres son letras
+}
 
 void cargarUsuario() {
 
@@ -313,10 +323,10 @@ void cargarUsuario() {
 				usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0';
 				
 				//control para que no se ingrese un nombre vacio (un enter)
-				if((strlen(usuario.nombre)) <= 0){
+				if((strlen(usuario.nombre)) <= 0 || (nombreValido(usuario.nombre)) == 0){
 					printf("ERROR: nombre no valido\n");
 				} 	
-			} while( (strlen(usuario.nombre)) <= 0 );
+			} while( (strlen(usuario.nombre)) <= 0 || (nombreValido(usuario.nombre)) == 0);
 			
 		denuevo:
 
