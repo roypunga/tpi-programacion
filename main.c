@@ -550,13 +550,11 @@ void transferirDinero(char* origen) {
 			posDestino = checkCvu(cvuDestino, fp1);
 			if (posDestino == -1) {
 				printf("ERROR: cvu no encontrado\n");
-				if ((strcmp(origen, cvuDestino)) == 0) {
-					printf("ERROR: el cvu de origen es el mismo que el de destino\n");
-				}
 			}
-
-
-		} while (posDestino == -1 && (strcmp(origen, cvuDestino)) == 0);
+			if ((strcmp(origen, cvuDestino)) == 0) {
+				printf("ERROR: el cvu de origen es el mismo que el de destino\n");
+			}
+		} while (posDestino == -1 || (strcmp(origen, cvuDestino)) == 0);
 		fclose(fp1);
 
 		do {
@@ -626,7 +624,9 @@ void transferirDinero(char* origen) {
 			else printf("\nERROR: no se pudo abrir el archivo\n");
 		}
 	}
+
 	else {
+		struct struct_usuario usuarioX;
 		do {
 			fp1 = fopen("Usuarios.dat", "r+b");
 			printf("Ingrese el alias destinatario -----> ");
@@ -634,11 +634,18 @@ void transferirDinero(char* origen) {
 			posDestino = checkAlias(cvuDestino, fp1);
 			if (posDestino == -1) {
 				printf("ERROR: alias no encontrado\n");
-				if ((strcmp(origen, cvuDestino)) == 0) {
-					printf("ERROR: el alias de origen es el mismo que el de destino\n");
-				}
 			}
-		} while (posDestino == -1 && (strcmp(origen, cvuDestino)) == 0);
+
+			int posicionParaCheckear = checkCvu(origen, fp1);
+			
+			fseek(fp1, sizeof(usuario)* posicionParaCheckear, SEEK_SET);
+			fread(&usuarioX, sizeof(usuarioX), 1, fp1);
+			rewind(fp1);
+
+			if ((strcmp(usuarioX.alias, cvuDestino)) == 0) {
+				printf("ERROR: el alias de origen es el mismo que el de destino\n");
+			}
+		} while (posDestino == -1 || (strcmp(usuarioX.alias, cvuDestino)) == 0);
 		fclose(fp1);
 
 		do {
@@ -934,7 +941,7 @@ void obtenerDatosDestino(char *CVU){
 		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
 		while (!feof(pUsuarios) && encontro == 0) {
 			if (strcmp(usuario.cvu, objetivo) == 0) {
-				printf("\nDatos del destinatario: nombre: %s, alias: %s, cuil: %li", usuario.nombre, usuario.alias, usuario.cuil);
+				printf("\nDatos del destinatario: nombre: %s, alias: %s, cuil: %lld", usuario.nombre, usuario.alias, usuario.cuil);
 				encontro = 1;
 			}
 			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
@@ -956,7 +963,7 @@ void obtenerDatosEmisor(char* CVU) {
 		fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
 		while (!feof(pUsuarios) && encontro == 0) {
 			if (strcmp(usuario.cvu, objetivo) == 0) {
-				printf("\nDatos del emisor: nombre: %s, alias: %s, cuil: %li", usuario.nombre, usuario.alias, usuario.cuil);
+				printf("\nDatos del emisor: nombre: %s, alias: %s, cuil: %lld", usuario.nombre, usuario.alias, usuario.cuil);
 				encontro = 1;
 			}
 			fread(&usuario, sizeof(struct struct_usuario), 1, pUsuarios);
