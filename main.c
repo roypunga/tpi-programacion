@@ -1737,9 +1737,10 @@ if(numCuentas > 9){
 }
 else{
 
-
-	printf("\nIngrese el tipo de cuenta (1- Caja de ahorro 2-Cuenta corriente)");
-	scanf("%d",&usrChoice);
+	do{
+		printf("\nIngrese el tipo de cuenta (1- Caja de ahorro 2-Cuenta corriente)");
+		scanf("%d",&usrChoice);
+	}while(usrChoice != 1 && usrChoice != 2);
 
 	cuentaBanco.tipo = usrChoice;
 
