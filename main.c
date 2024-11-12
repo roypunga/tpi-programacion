@@ -1732,7 +1732,7 @@ if(file_cuentas != NULL){
 	fclose(file_cuentas);
 }
 
-if(numCuentas > 10){
+if(numCuentas > 9){
 	printf("\nError: Puede tener como maximo 10 cuentas de banco asociadas.\n");
 }
 else{
