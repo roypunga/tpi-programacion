@@ -44,6 +44,8 @@ int checkAlias(char* , FILE*);
 void asociarCuenta(long long int cuil);
 int validarCBU(char *cbu);
 int checkCbu(char *cbuABuscar);
+void listarCuentas();
+
 
 void listarIIBB(char*);
 
@@ -81,6 +83,7 @@ struct struct_cuenta_banco{
 	long long int cuil;
 }cuentaBanco;
 
+void ingresarDinero(long long int cuilUsuario); 
 //---------------------------------------- MAIN Y FUNCIONES DE LOS MENUS ----------------------------------------
 
 
@@ -183,6 +186,9 @@ void menuUsuario(int posUsuario){
 					case 8:
 						asociarCuenta(usuarioMenu.cuil);
 						break;
+					case 9:
+						ingresarDinero(usuarioMenu.cuil);
+						break;
 					default:
 						printf("Opcion Invalida\n");
 				}
@@ -206,7 +212,8 @@ void menuAdministrador(){
 		printf("2-Mostrar datos de un usuario\n");
 		printf("3-Mostrar los datos de todos los usuarios\n");
 		printf("4-Cargar Saldo\n");
-		printf("5-Mostrar usuarios con saldo bajo\n-----> ");
+		printf("5-Mostrar usuarios con saldo bajo\n");
+		printf("6-Listar todas las cuentas bancarias asociadas\n-----> ");
 
         scanf("%d", &usrChoice);
 
@@ -230,6 +237,9 @@ void menuAdministrador(){
 				break;
 			case 5:
 				saldoBajo();
+				break;
+			case 6:
+				listarCuentas();
 				break;
             default:
                 printf("Opcion Invalida\n");
@@ -1679,8 +1689,6 @@ int usrChoice;
 
 	do{
 		printf("\nIngrese el CBU de la cuenta: ");
-		
-		while (getchar() != '\n'); 
 
 		fgets(cuentaBanco.cbu, sizeof(cuentaBanco.cbu), stdin);
 
@@ -1742,4 +1750,126 @@ int checkCbu(char *cbuABuscar){
 		return contador - 1;
 	}
 	return -1;
+}
+
+void listarCuentas() {
+    FILE *file = fopen("Cuentas.dat", "rb");
+    if (file == NULL) {
+        printf("Error: No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    struct struct_cuenta_banco cuenta;
+    printf("Listado de Cuentas:\n");
+    printf("Tipo\tCBU\t\t\t\tCUIL\n");
+    printf("-----------------------------------------------------------\n");
+
+    while (fread(&cuenta, sizeof(struct struct_cuenta_banco), 1, file) == 1) {
+
+        printf("%d\t%s\t%lld\n", cuenta.tipo, cuenta.cbu, cuenta.cuil);
+    }
+
+    fclose(file);
+}
+
+void ingresarDinero(long long int cuilUsuario) {
+	int usrChoice;
+    FILE *file = fopen("Cuentas.dat", "rb");
+    if (file == NULL) {
+        printf("Error: No se pudo abrir el archivo de cuentas.\n");
+        return;
+    }
+
+    struct struct_cuenta_banco cuenta;
+    struct struct_cuenta_banco cuentasAsociadas[10]; // Asumiendo un máximo de 10 cuentas por usuario
+    int numCuentas = 0;
+
+    // Buscar cuentas asociadas al CUIL del usuario
+    while (fread(&cuenta, sizeof(struct struct_cuenta_banco), 1, file) == 1) {
+        if (cuenta.cuil == cuilUsuario) {
+            cuentasAsociadas[numCuentas] = cuenta;
+			numCuentas++;
+        }
+    }
+    fclose(file);
+
+    if (numCuentas == 0) {
+        printf("Usted no tiene cuentas bancarias asociadas.\n");
+        return;
+    } else if (numCuentas == 1) {
+        // si solo tiene una cuenta asociada
+        printf("Desea ingresar dinero desde la cuenta con CBU: %s? (1: Sí / 0: No): ", cuentasAsociadas[0].cbu);
+        scanf("%d", &usrChoice);
+        if (usrChoice != 1) {
+            printf("Operación cancelada.\n");
+            return;
+        }
+    } else {
+        // si tiene mas de una
+        printf("Cuentas bancarias asociadas:\n");
+        for (int i = 0; i < numCuentas; i++) {
+            printf("%d. CBU: %s\n", i + 1, cuentasAsociadas[i].cbu);
+        }
+        printf("Seleccione el número de la cuenta desde la cual desea ingresar dinero: ");
+        scanf("%d", &usrChoice);
+        if (usrChoice < 1 || usrChoice > numCuentas) {
+            printf("Selección inválida.\n");
+            return;
+        }
+    }
+
+    float monto;
+    printf("Ingrese el monto que desea cargar a su billetera: ");
+    scanf("%f", &monto);
+    if (monto <= 0) {
+        printf("El monto debe ser positivo.\n");
+        return;
+    }
+
+
+	struct struct_usuario usuario;
+	struct struct_movimiento movimiento;
+
+	FILE *file_usuarios;
+	file_usuarios = fopen("Cuentas.dat", "r+b");
+	if(file_usuarios != NULL){
+
+		int posicion = checkCuil(cuilUsuario, file_usuarios);
+
+		fseek(file_usuarios, sizeof(usuario) * posicion, SEEK_SET);
+		fread(&usuario, sizeof(usuario), 1, file_usuarios);
+		usuario.saldo = usuario.saldo + monto;
+
+		fseek(file_usuarios, sizeof(usuario) * posicion, SEEK_SET);
+		fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
+
+		fclose(file_usuarios);
+		printf("\nDinero cargado correctamente, su saldo actual es de: %.2f", usuario.saldo);
+
+		movimiento.anio = fecha.anio;
+		movimiento.mes = fecha.mes;
+		movimiento.dia = fecha.dia;
+		movimiento.tipo = 3;
+		movimiento.iibb = 0;
+		strcpy(movimiento.cvuDestino, usuario.cvu);
+		strcpy(movimiento.cvuOrigen, cuentasAsociadas[usrChoice-1].cbu);
+		movimiento.monto = monto;
+
+		FILE *file_movimientos;
+		file_movimientos = fopen("Movimientos.dat", "a+b");
+		if(file_movimientos != NULL){
+
+			fwrite(&movimiento, sizeof(movimiento), 1, file_movimientos);
+
+			fclose(file_movimientos);
+		}
+		else {
+		printf("Error de archivo");
+		}
+
+	}
+	else {
+	printf("Error de archivo");
+	}
+
 }
