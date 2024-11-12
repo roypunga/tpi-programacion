@@ -1717,6 +1717,26 @@ int validarCBU(char *cbu) {
 void asociarCuenta(long long int cuil){
 int validar = 0;
 int usrChoice;
+struct struct_cuenta_banco cuentaBanco;
+
+FILE *file_cuentas;
+file_cuentas = fopen("Cuentas.dat", "rb");
+int numCuentas = 0;
+if(file_cuentas != NULL){
+
+	while (fread(&cuentaBanco, sizeof(struct struct_cuenta_banco), 1, file_cuentas) == 1) {
+		if (cuentaBanco.cuil == cuil) {
+			numCuentas++;
+		}
+	}
+	fclose(file_cuentas);
+}
+
+if(numCuentas > 10){
+	printf("\nError: Puede tener como maximo 10 cuentas de banco asociadas.\n");
+}
+else{
+
 
 	printf("\nIngrese el tipo de cuenta (1- Caja de ahorro 2-Cuenta corriente)");
 	scanf("%d",&usrChoice);
@@ -1744,7 +1764,7 @@ int usrChoice;
 		printf("\nError: Ese CBU ya esta asociado a una cuenta de PagarMercado");
 		}
 
-
+		
 	}while(validar == 0);
 
 	cuentaBanco.cuil = cuil;
@@ -1760,6 +1780,7 @@ int usrChoice;
 	else{
 		printf("\nERROR DE ARCHIVO\n");
 	}
+}
 }
 
 int checkCbu(char *cbuABuscar){
@@ -1820,10 +1841,9 @@ void ingresarDinero(long long int cuilUsuario) {
     }
 
     struct struct_cuenta_banco cuenta;
-    struct struct_cuenta_banco cuentasAsociadas[10]; // Asumiendo un máximo de 10 cuentas por usuario
+    struct struct_cuenta_banco cuentasAsociadas[10];
     int numCuentas = 0;
 
-    // Buscar cuentas asociadas al CUIL del usuario
     while (fread(&cuenta, sizeof(struct struct_cuenta_banco), 1, file) == 1) {
         if (cuenta.cuil == cuilUsuario) {
             cuentasAsociadas[numCuentas] = cuenta;
