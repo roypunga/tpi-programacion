@@ -41,6 +41,9 @@ void actividadUsuario(char*);
 void listarMovimientosTXT(char*);
 int nombreValido(char *);
 int checkAlias(char* , FILE*);
+void asociarCuenta(long long int cuil);
+int validarCBU(char *cbu);
+int checkCbu(char *cbuABuscar);
 
 void listarIIBB(char*);
 
@@ -72,7 +75,11 @@ struct struct_movimiento{
     char cvuOrigen[23], cvuDestino[23];
 }movimiento;
 
-
+struct struct_cuenta_banco{
+	int tipo;
+	char cbu[23];
+	long long int cuil;
+}cuentaBanco;
 
 //---------------------------------------- MAIN Y FUNCIONES DE LOS MENUS ----------------------------------------
 
@@ -137,7 +144,9 @@ void menuUsuario(int posUsuario){
 				printf("4. Listar pagos\n");
 				printf("5. Mostrar mis datos\n");
 				printf("6. Mostrar resumen de actividad\n");
-				printf("7. Listar mis movimientos (generar archivo de texto)");
+				printf("7. Listar mis movimientos (generar archivo de texto)\n");
+				printf("8. Asociar cuenta de banco\n");
+				printf("9. Ingresar dinero desde cuenta de banco\n");
 				scanf("%d", &usrChoice);
 
 				switch(usrChoice) {
@@ -170,6 +179,9 @@ void menuUsuario(int posUsuario){
 						break;
 					case 7:
 						listarMovimientosTXT(usuarioMenu.cvu);
+						break;
+					case 8:
+						asociarCuenta(usuarioMenu.cuil);
 						break;
 					default:
 						printf("Opcion Invalida\n");
@@ -299,32 +311,32 @@ int checkAlias(char* aliasABuscar, FILE* file_usuarios) {
 	int contador = 0;
 	struct struct_usuario usuario;
 
-	rewind(file_usuarios);  // Asegura que el puntero esté al inicio del archivo
+	rewind(file_usuarios); 
 
 	while (fread(&usuario, sizeof(usuario), 1, file_usuarios) == 1) {
 		contador++;
 		if (strcmp(usuario.alias, aliasABuscar) == 0) {
 			encontro = 1;
-			break;  // Alias encontrado, salimos del bucle
+			break;  
 		}
 	}
 
 	if (encontro == 1) {
-		return contador - 1;  // Devuelve la posición donde se encontró
+		return contador - 1; 
 	}
 
-	return -1;  // No se encontró
+	return -1;
 }
 
 
 int nombreValido(char *nombre){
 	int i;
     for(i = 0; i < strlen(nombre); i++) {
-        if ((!isalpha(nombre[i])) && nombre[i] != ' ') {  // Verifica que cada carácter sea una letra
-            return 0;               // Retorna 0 si algún carácter no es letra
+        if ((!isalpha(nombre[i])) && nombre[i] != ' ') {  
+            return 0;               
         }
     }
-    return 1; // Retorna 1 si todos los caracteres son letras
+    return 1;
 }
 //-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
 
@@ -378,16 +390,16 @@ void cargarUsuario() {
 			do {
     			printf("\nIngrese el mail ------> ");
     			fgets(usuario.email, 30, stdin);
-    			usuario.email[strcspn(usuario.email, "\n")] = '\0'; //Elimina el salto de línea
+    			usuario.email[strcspn(usuario.email, "\n")] = '\0';
 
-    			// Recorre los dominios permitidos y verifica si el correo termina con alguno
+
     			for(i = 0; i < 6; i++) {
         			lenDominio = strlen(dominios[i]);
         			lenEmail = strlen(usuario.email);
         			
       			  if(lenEmail >= lenDominio && strcmp(usuario.email + lenEmail - lenDominio, dominios[i]) == 0 && (strcspn(usuario.email, "@")) > 0){
-           			esValido = 1;  // Cambia esValido a 1 si el dominio es válido
-            		break;         // Termina el bucle si se encuentra un dominio válido
+           			esValido = 1; 
+            		break;        
         			}
     			}
    				 if(esValido != 1) {
@@ -669,13 +681,13 @@ void transferirDinero(char* origen) {
 						encontrado1 = 1;
 						usuarioMenu.saldo = usuarioMenu.saldo - monto;
 						usuario.saldo = usuarioMenu.saldo;
-						fseek(fp1, -sizeof(struct struct_usuario), SEEK_CUR);  // Reposiciona el puntero antes de sobrescribir
+						fseek(fp1, -sizeof(struct struct_usuario), SEEK_CUR); 
 						fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
 					}
 					else fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 				}
 
-				// Reposicionar el puntero para el usuario destino
+	
 				fseek(fp1, (sizeof(struct struct_usuario)) * (posDestino), SEEK_SET);
 				fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
 
@@ -687,7 +699,6 @@ void transferirDinero(char* origen) {
 				strcpy(movimiento.cvuOrigen, origen);
 				strcpy(movimiento.cvuDestino, usuario.cvu);
 
-				// Condiciones para el iibb
 				if (usuario.iva >= 5 && usuario.iva <= 9) {
 					movimiento.iibb = 0;
 					usuario.saldo = usuario.saldo + monto;
@@ -700,14 +711,14 @@ void transferirDinero(char* origen) {
 					usuario.saldo = usuario.saldo + (monto - (monto * 0.05));
 				}
 
-				// Escribir el movimiento y el saldo actualizado en el archivo
+			
 				fwrite(&movimiento, sizeof(struct struct_movimiento), 1, fp2);
 
-				// Reposicionar para sobrescribir el usuario destino con el saldo actualizado
+		
 				fseek(fp1, (sizeof(struct struct_usuario)) * (posDestino), SEEK_SET);
 				fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
 
-				// Cerrar los archivos
+	
 				fclose(fp1);
 				fclose(fp2);
 			}
@@ -1630,3 +1641,105 @@ void listarIIBB(char *Origen){
 	}
 }
 
+
+
+
+
+
+int validarCBU(char *cbu) {
+    if (strlen(cbu) != 22) {
+        printf("Error: El CBU debe tener exactamente 22 caracteres.\n");
+        return 0;
+    }
+
+    if (cbu[0] == '0' && cbu[1] == '0' && cbu[2] == '0') {
+        printf("Error: Ingreso un CVU.\n");
+        return 0;
+    }
+
+    for (int i = 0; i < 22; i++) {
+        if (!isdigit(cbu[i])) {
+            printf("Error: El CBU debe contener solo nÃºmeros.\n");
+            return 0;
+        }
+    }
+
+    // es valido
+    return 1;
+}
+
+void asociarCuenta(long long int cuil){
+int validar = 0;
+int usrChoice;
+
+	printf("\nIngrese el tipo de cuenta (1- Caja de ahorro 2-Cuenta corriente)");
+	scanf("%d",&usrChoice);
+
+	cuentaBanco.tipo = usrChoice;
+
+	do{
+		printf("\nIngrese el CBU de la cuenta: ");
+		
+		while (getchar() != '\n'); 
+
+		fgets(cuentaBanco.cbu, sizeof(cuentaBanco.cbu), stdin);
+
+		size_t len = strlen(cuentaBanco.cbu);
+		if (len > 0 && cuentaBanco.cbu[len - 1] == '\n') {
+			cuentaBanco.cbu[len - 1] = '\0';
+		}
+		if(checkCbu(cuentaBanco.cbu) == -1){
+			if(validarCBU(cuentaBanco.cbu) == 1){
+				validar = 1;
+			}
+		}
+		else {
+		printf("\nError: Ese CBU ya esta asociado a una cuenta de PagarMercado");
+		}
+
+
+	}while(validar == 0);
+
+	cuentaBanco.cuil = cuil;
+
+	FILE *file_cuentas;
+	file_cuentas = fopen("Cuentas.dat", "a+b");
+	if(file_cuentas != NULL){
+
+		fwrite(&cuentaBanco, sizeof(cuentaBanco), 1, file_cuentas);
+
+		fclose(file_cuentas);
+	}
+	else{
+		printf("\nERROR DE ARCHIVO\n");
+	}
+}
+
+int checkCbu(char *cbuABuscar){
+
+	FILE *file_cuentas;
+	file_cuentas = fopen("Cuentas.dat", "rb");
+
+	if(file_cuentas == NULL){
+		return -1;
+	}
+
+    int encontro = 0;
+	int contador = 0;
+	struct struct_cuenta_banco cuentaBanco;
+
+    rewind(file_cuentas);
+
+    while(fread(&cuentaBanco, sizeof(cuentaBanco), 1, file_cuentas) && encontro != 1){
+
+		contador += 1;
+        if(!strcmp(cuentaBanco.cbu, cbuABuscar)){
+            encontro = 1;
+        }
+    }
+
+    if(encontro == 1){
+		return contador - 1;
+	}
+	return -1;
+}
