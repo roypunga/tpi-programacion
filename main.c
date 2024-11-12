@@ -1726,6 +1726,9 @@ int usrChoice;
 	do{
 		printf("\nIngrese el CBU de la cuenta: ");
 
+		int c;
+    	while ((c = getchar()) != '\n' && c != EOF);
+
 		fgets(cuentaBanco.cbu, sizeof(cuentaBanco.cbu), stdin);
 
 		size_t len = strlen(cuentaBanco.cbu);
@@ -1867,7 +1870,7 @@ void ingresarDinero(long long int cuilUsuario) {
 	struct struct_movimiento movimiento;
 
 	FILE *file_usuarios;
-	file_usuarios = fopen("Cuentas.dat", "r+b");
+	file_usuarios = fopen("Usuarios.dat", "r+b");
 	if(file_usuarios != NULL){
 
 		int posicion = checkCuil(cuilUsuario, file_usuarios);
@@ -1877,7 +1880,7 @@ void ingresarDinero(long long int cuilUsuario) {
 		usuario.saldo = usuario.saldo + monto;
 
 		fseek(file_usuarios, sizeof(usuario) * posicion, SEEK_SET);
-		fwrite(&usuario, sizeof(usuario), 1, file_usuarios);
+		fwrite(&usuario,sizeof(struct struct_usuario),1,file_usuarios);
 
 		fclose(file_usuarios);
 		printf("\nDinero cargado correctamente, su saldo actual es de: %.2f", usuario.saldo);
