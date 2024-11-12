@@ -1187,7 +1187,7 @@ void listarMovimientosTXT(char* Origen) {
 						}
 						else {
 							if (movimiento.tipo == 3) {
-								fprintf(file_txt, "\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								fprintf(file_txt, "\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 								cont++;
 							}
 						}
@@ -1236,7 +1236,7 @@ void listarMovimientos(char* Origen) {
 						}
 						else {
 							if (movimiento.tipo == 3) {
-								printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 								cont++;
 							}
 						}
@@ -1292,7 +1292,7 @@ void listarSoloIngr(char *Origen){
 		rewind(fp1);
 		while(fread(&movimiento, sizeof(struct struct_movimiento),1,fp1) == 1){
 			if (((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) {
-				printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+				printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 			}
 		}
 		fclose(fp1);
@@ -1404,7 +1404,7 @@ void listarEntrFecha(char* Origen) {
 						}
 						else {
 							if (movimiento.tipo == 3) {
-								printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 
 							}
 						}
@@ -1467,7 +1467,7 @@ void listarSoloUnaFecha(char* Origen) {
 						}
 						else {
 							if (movimiento.tipo == 3) {
-								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, destino: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuDestino);
+								printf("\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 
 							}
 						}
@@ -1511,7 +1511,7 @@ void listarMovsMayrA (char *Origen){
 					}
 					else {
 						if ((((strcmp(movimiento.cvuDestino, OrigenTranfe) == 0)) && (movimiento.tipo == 3)) && movimiento.monto > monto) {
-							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 						}
 					}
 				}
@@ -1554,7 +1554,7 @@ void listarMovsMenrA(char *Origen) {
 					}
 					else {
 						if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) && movimiento.monto <= monto) {
-							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 						}
 					}
 				}
@@ -1598,7 +1598,7 @@ void listarMovsEntre(char *Origen) {
 					}
 					else {
 						if ((((strcmp(movimiento.cvuDestino, OrigenTransfe) == 0)) && (movimiento.tipo == 3)) && ((movimiento.monto > MontoMenor) && (movimiento.monto <= MontoMayor))) {
-							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio);
+							printf("\n\nOperacion: ingreso, monto: +$%.2f, fecha: %d-%d-%d, origen: %s", movimiento.monto, movimiento.dia, movimiento.mes, movimiento.anio, movimiento.cvuOrigen);
 						}
 					}
 				}
