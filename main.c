@@ -46,7 +46,6 @@ int validarCBU(char *cbu);
 int checkCbu(char *cbuABuscar);
 void listarCuentas();
 
-
 void listarIIBB(char*);
 
 //---------------------------------------- DECLARACION DE ESTRUCTURAS GLOBALES ----------------------------------------
@@ -338,7 +337,6 @@ int checkAlias(char* aliasABuscar, FILE* file_usuarios) {
 	return -1;
 }
 
-
 int nombreValido(char *nombre){
 	int i;
     for(i = 0; i < strlen(nombre); i++) {
@@ -348,6 +346,8 @@ int nombreValido(char *nombre){
     }
     return 1;
 }
+
+
 //-------------------------------------------------------------------------------- FUNCIONES VARIAS --------------------------------------------------------------------------------
 
 
@@ -691,7 +691,7 @@ void transferirDinero(char* origen) {
 						encontrado1 = 1;
 						usuarioMenu.saldo = usuarioMenu.saldo - monto;
 						usuario.saldo = usuarioMenu.saldo;
-						fseek(fp1, -sizeof(struct struct_usuario), SEEK_CUR); 
+						fseek(fp1, (sizeof(struct struct_usuario)) * (-1), SEEK_CUR);
 						fwrite(&usuario, sizeof(struct struct_usuario), 1, fp1);
 					}
 					else fread(&usuario, sizeof(struct struct_usuario), 1, fp1);
@@ -1342,16 +1342,44 @@ void listarSoloPagos (char *Origen){
 
 void listarEntrFecha(char* Origen) {
 	FILE* pMovimientos = fopen("Movimientos.dat", "rb");
-	int diaMenor, diaMayor, mesMenor, mesMaayor, anioMenor, anioMayor, fechaValida;
+	int diaMenor, diaMayor, mesMenor, mesMaayor, anioMenor, anioMayor, fechaValida, ban=1;
 	char cvuOrigen[23];
 
 	strcpy(cvuOrigen, Origen);
 
-	printf("\nIngrese la fecha menor de listado (dd mm aaaa): ");
-	scanf("%d %d %d", &diaMenor, &mesMenor, &anioMenor);
+	ban = 1;
 
-	printf("\nIngrese la fecha mayor de listado (dd mm aaaa): ");
-	scanf("%d %d %d", &diaMayor, &mesMaayor, &anioMayor);
+	do {
+		do {
+			printf("\nIngrese la fecha menor de listado (dd mm aaaa): ");
+			scanf("%d %d %d", &diaMenor, &mesMenor, &anioMenor);
+
+			if (diaMenor > 31 || mesMenor > 12) {
+				printf("\nError, numero de mes o dia fuera de parametros\n");
+			}
+
+		} while (1);
+
+		do {
+			printf("\nIngrese la fecha mayor de listado (dd mm aaaa): ");
+			scanf("%d %d %d", &diaMayor, &mesMaayor, &anioMayor);
+
+			if (diaMayor > 31 || mesMaayor > 12) {
+				printf("\nError, numero de mes o dia fuera de parametros\n");
+			}
+
+		} while (1);
+		
+
+		if (anioMenor > anioMayor ||
+			(anioMenor == anioMayor && mesMenor > mesMaayor) ||
+			(anioMenor == anioMayor && mesMenor == mesMaayor && diaMenor >= diaMayor)) {
+			printf("\nError: La fecha menor debe ser anterior a la fecha mayor. Intente de nuevo.\n");
+		}
+		else {
+			break; 
+		}
+	} while (1);
 
 	if (pMovimientos == NULL) {
 
@@ -1412,9 +1440,17 @@ void listarSoloUnaFecha(char* Origen) {
 	int dia, mes, anio, fechaValida = 0;
 
 	strcpy(cvuOrigen, Origen);
+	
+	do {
+		printf("\nINgrese la fecha para buscar todas las operaciones en ese dia (dd mm aaaa): ");
+		scanf("%d %d %d", &dia, &mes, &anio);
 
-	printf("\nINgrese la fecha para buscar todas las operaciones en ese dia (dd mm aaaa): ");
-	scanf("%d %d %d", &dia, &mes, &anio);
+		if (dia > 31 || mes > 12) {
+			printf("\nError, numero de mes o dia fuera de parametros\n");
+		}
+
+	} while (1);
+	
 
 	if (pMovimientos == NULL) {
 		printf("\nERROR DE APERTURA DE ARCHIVO DE MOVIMIENTOS");
